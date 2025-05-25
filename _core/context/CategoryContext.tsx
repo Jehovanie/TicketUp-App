@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState, ReactNode } from "react";
-import { client } from "../api/client";
-import { ICategory } from "@/_shard/model/ICategory";
+import { client } from "../../_config/api/client";
+import { ICategory } from "@/_core/model/ICategory";
 
 type DataEventType = {
 	categories: Partial<ICategory>[];

@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState, ReactNode } from "react";
-import { client } from "../api/client";
-import { IEvent } from "@/_shard/model/IEvent";
+import { client } from "../../_config/api/client";
+import { IEvent } from "@/_core/model/IEvent";
 
 type DataEventType = {
 	events: Partial<IEvent>[];

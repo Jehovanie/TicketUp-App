@@ -1,4 +1,4 @@
-import { API } from "../environment/environement";
+import { environment } from "@/environment/environement";
 
 interface ClientResponse<T> {
 	status: number;
@@ -28,9 +28,9 @@ export async function client<T>(
 
 		if (body) config.body = JSON.stringify(body);
 
-		console.log(`Link : ${API}${endPoint}`);
+		console.log(`Link : ${environment.apiUrl}${endPoint}`);
 		console.log("confi " + JSON.stringify(config));
-		const response = await window.fetch(`${API}${endPoint}`, config);
+		const response = await window.fetch(`${environment.apiUrl}${endPoint}`, config);
 
 		const data = await response.json();
 		if (response.ok) {

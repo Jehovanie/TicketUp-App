@@ -1,11 +1,11 @@
-import { Card } from "@/components/Cards";
-import Filters from "@/components/Filters";
-import NoResults from "@/components/NoResult";
-import Search from "@/components/Search";
+import { Card } from "@/_shard/components/Cards";
+import Filters from "@/_shard/components/Filters";
+import NoResults from "@/_shard/components/NoResult";
+import Search from "@/_shard/components/Search";
 import icons from "@/_shard/constants/icons";
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { EventContext } from "@/_config/context/EventContext";
+import { EventContext } from "@/_core/context/EventContext";
 import { useContext, useEffect, useState } from "react";
 
 const Explore = () => {

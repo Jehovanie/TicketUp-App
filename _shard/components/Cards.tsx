@@ -1,7 +1,7 @@
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
-import { IEvent } from "@/_shard/model/IEvent";
-import { ITicketType } from "@/_shard/model/ITicketType";
+import { IEvent } from "@/_core/model/IEvent";
+import { ITicketType } from "@/_core/model/ITicketType";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 
 interface Props {
