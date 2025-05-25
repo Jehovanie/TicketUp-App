@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Text, ScrollView, TouchableOpacity } from "react-native";
 
-import { ICategory } from "@/_shard/model/ICategory";
+import { ICategory } from "@/_core/model/ICategory";
 
 interface Props {
 	categories: Partial<ICategory>[];
@@ -32,15 +32,13 @@ const Filters = ({ categories }: Props) => {
 					key={index}
 					className={`flex flex-col items-start mr-4 px-4 py-2 rounded-full ${
 						selectedCategory === item.name ? "bg-primary" : "bg-primary-100 border border-primary-100"
-					}`}
-				>
+					}`}>
 					<Text
 						className={`text-sm ${
 							selectedCategory === item.name
 								? "text-white font-poppins-bold mt-0.5"
 								: "text-black font-poppins"
-						}`}
-					>
+						}`}>
 						{item.name}
 					</Text>
 				</TouchableOpacity>

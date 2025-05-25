@@ -1,14 +1,14 @@
 import { ActivityIndicator, FlatList, Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import NoResults from "@/components/NoResult";
-import { Card, FeaturedCard } from "@/components/Cards";
+import NoResults from "@/_shard/components/NoResult";
+import { Card, FeaturedCard } from "@/_shard/components/Cards";
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
-import Filters from "@/components/Filters";
+import Filters from "@/_shard/components/Filters";
 import { useContext, useEffect, useState } from "react";
-import { EventContext } from "@/_config/context/EventContext";
-import { CategoryContext } from "@/_config/context/CategoryContext";
+import { EventContext } from "@/_core/context/EventContext";
+import { CategoryContext } from "@/_core/context/CategoryContext";
 
 const Index = () => {
 	const loading = false;
@@ -42,7 +42,6 @@ const Index = () => {
 	useEffect(() => {
 		setLatestProperties(events);
 		setProperties(events.reverse());
-
 	}, [isLoadingEvent]);
 
 	useEffect(() => {
@@ -124,7 +123,7 @@ const Index = () => {
 									<Text className="text-base font-poppins-medium text-primary">See all</Text>
 								</TouchableOpacity>
 							</View>
-							<Filters categories={categories.reverse()} />
+							<Filters categories={allCategories.reverse()} />
 						</View>
 					</View>
 				}

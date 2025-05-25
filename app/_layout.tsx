@@ -3,8 +3,8 @@ import { Slot, SplashScreen, Stack } from "expo-router";
 import "./global.css";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
-import { EventProvider } from "@/_config/context/EventContext";
-import { CategoryProvider } from "@/_config/context/CategoryContext";
+import { EventProvider } from "@/_core/context/EventContext";
+import { CategoryProvider } from "@/_core/context/CategoryContext";
 
 export default function AppLayout() {
 	const [fontsLoaded] = useFonts({
