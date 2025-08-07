@@ -1,7 +1,7 @@
-import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
-import images from "@/_shard/constants/images";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
+import AuthLogo from "@/_shard/components/AuthLogo";
 
 const SignIn = () => {
 	const handleSignIn = () => {};
@@ -9,9 +9,7 @@ const SignIn = () => {
 	return (
 		<SafeAreaView className="bg-primary-300 flex-1 relative h-screen">
 			<View className="w-full h-[250px]">
-				<View className="items-center mb-6">
-					<Image source={images.logoTransparent} className="h-[250px] w-[300px] mb-2" />
-				</View>
+				<AuthLogo />
 			</View>
 			<View className="absolute left-0 right-0 bottom-0 h-[75vh]">
 				<View className="w-full h-full bg-white rounded-tl-[40px] rounded-tr-[40px] shadow-lg p-10">
@@ -32,7 +30,8 @@ const SignIn = () => {
 
 						<TouchableOpacity
 							className="bg-purple-600 rounded-2xl py-3 mb-4 items-center"
-							onPress={handleSignIn}>
+							onPress={handleSignIn}
+						>
 							<Text className="text-white font-poppins-bold text-xl">Sign In</Text>
 						</TouchableOpacity>
 					</View>

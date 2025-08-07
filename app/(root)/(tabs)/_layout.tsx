@@ -10,7 +10,8 @@ const TabIcon = ({ focused, icon, title }: { focused: boolean; icon: ImageSource
 		<Text
 			className={`${
 				focused ? "text-primary font-poppins-medium" : "text-black-200 font-poppins"
-			} text-xs w-full text-center mt-1`}>
+			} text-xs w-full text-center mt-1`}
+		>
 			{title}
 		</Text>
 	</View>
@@ -41,7 +42,8 @@ const AppHomeLayout = () => {
 					borderTopWidth: 1,
 					minHeight: 70,
 				},
-			}}>
+			}}
+		>
 			<Tabs.Screen
 				name="index"
 				options={{
