@@ -28,7 +28,7 @@ const AppHomeLayout = () => {
 		);
 	}
 
-	if (!isLogged) return <Redirect href="./signup" />;
+	if (!isLogged) return <Redirect href="./signin" />;
 
 	return (
 		<Tabs
