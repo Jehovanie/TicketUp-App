@@ -6,9 +6,8 @@ import { Card, FeaturedCard } from "@/_shard/components/Cards";
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
 import Filters from "@/_shard/components/Filters";
-import { useContext, useEffect, useState } from "react";
-import { EventContext } from "@/_core/context/EventContext";
-import { CategoryContext } from "@/_core/context/CategoryContext";
+import { useEffect, useState } from "react";
+import { useEvent, useEventCategory } from "@/_core/hook";
 
 const Index = () => {
 	const loading = false;
@@ -30,14 +29,8 @@ const Index = () => {
 		setIsSearchMode((state) => !state);
 	};
 
-	const eventContext = useContext(EventContext);
-	const categoriesContext = useContext(CategoryContext);
-
-	if (!eventContext) throw new Error("Must be used inside EventProvider");
-	if (!categoriesContext) throw new Error("Must be used inside CategoryContext");
-
-	const { events, isLoading: isLoadingEvent, errors: errorsEventContext } = eventContext;
-	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = categoriesContext;
+	const { events, isLoading: isLoadingEvent, errors: errorsEventContext } = useEvent();
+	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = useEventCategory();
 
 	useEffect(() => {
 		setLatestProperties(events);

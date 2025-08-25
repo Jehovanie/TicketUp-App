@@ -1,4 +1,4 @@
-import { environment } from "@/environment/environement";
+import { environment } from "@/environment/environement.local";
 
 interface ClientResponse<T> {
 	status: number;
