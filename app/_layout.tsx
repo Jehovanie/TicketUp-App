@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import { EventProvider } from "@/_core/context/EventContext";
 import { CategoryProvider } from "@/_core/context/CategoryContext";
+import { Provider } from "react-redux";
+import { store } from "@/_config/store";
 
 export default function AppLayout() {
 	const [fontsLoaded] = useFonts({
@@ -26,10 +28,8 @@ export default function AppLayout() {
 	if (!fontsLoaded) return null;
 
 	return (
-		<CategoryProvider>
-			<EventProvider>
-				<Slot />
-			</EventProvider>
-		</CategoryProvider>
+		<Provider store={store}>
+			<Slot />
+		</Provider>
 	);
 }

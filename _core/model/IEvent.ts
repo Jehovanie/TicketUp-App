@@ -9,6 +9,8 @@ export interface IEvent {
 	startedAt: string;
 	endAt: string;
 	imageUrl: string[];
+	slug: string;
+	uuid: string;
 	createdAt: string;
 	updatedAt: string;
 	status: boolean;

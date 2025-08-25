@@ -7,30 +7,43 @@ import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Image } from
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EventContext } from "@/_core/context/EventContext";
 import { useContext, useEffect, useState } from "react";
+import { useCategory, useEvent } from "@/_core/hook";
 
 const Explore = () => {
 	const context = useContext(EventContext);
 	if (!context) throw new Error("Must be used inside EventProvider");
-	const { events, isLoading, errors } = context;
 
 	const [latestProperties, setLatestProperties] = useState<any>([]);
+	const [allCategories, setAllCategories] = useState<any>([]);
+
+	const { events, isLoading: isLoadingEvent, errors: errorsEventContext } = useEvent();
+	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = useCategory();
+	
 
 	useEffect(() => {
 		setLatestProperties(events);
-	}, [isLoading]);
+	}, [isLoadingEvent]);
+
+	useEffect(() => {
+		setAllCategories(categories);
+	}, [isLoadingCategories]);
 
 	return (
 		<SafeAreaView className="bg-white flex-1">
 			<FlatList
 				data={latestProperties}
 				renderItem={({ item }) => <Card event={item} />}
-				keyExtractor={(item) => item.id.toString()}
+				keyExtractor={(item) => item.uuid}
 				numColumns={2}
 				contentContainerClassName="pb-32"
 				columnWrapperClassName="flex flex-col"
 				showsVerticalScrollIndicator={false}
 				ListEmptyComponent={
-					isLoading ? <ActivityIndicator size="large" className="text-primary-300 mt-5" /> : <NoResults />
+					isLoadingEvent ? (
+						<ActivityIndicator size="large" className="text-primary-300 mt-5" />
+					) : (
+						<NoResults />
+					)
 				}
 				ListHeaderComponent={
 					<View className="bg-primary">
@@ -44,7 +57,7 @@ const Explore = () => {
 							<Search />
 						</View>
 						<View className="bg-white px-5 py-2 rounded-tl-3xl rounded-tr-3xl">
-							<Filters categories={[]} />
+							<Filters categories={allCategories} />
 						</View>
 					</View>
 				}

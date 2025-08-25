@@ -26,23 +26,27 @@ const Filters = ({ categories }: Props) => {
 
 	return (
 		<ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 mb-2">
-			{[{ id: 0, name: "All", color: "green" }, ...categories].map((item, index) => (
-				<TouchableOpacity
-					onPress={() => handleCategoryPress(item.name ?? "")}
-					key={index}
-					className={`flex flex-col items-start mr-4 px-4 py-2 rounded-full ${
-						selectedCategory === item.name ? "bg-primary" : "bg-primary-100 border border-primary-100"
-					}`}>
-					<Text
-						className={`text-sm ${
-							selectedCategory === item.name
-								? "text-white font-poppins-bold mt-0.5"
-								: "text-black font-poppins"
-						}`}>
-						{item.name}
-					</Text>
-				</TouchableOpacity>
-			))}
+			{[{ id: 0, name: "All", color: "green", slug: "slug_all", uuid: "uuid" }, ...categories].map(
+				(item, index) => (
+					<TouchableOpacity
+						onPress={() => handleCategoryPress(item.name ?? "")}
+						key={item.uuid}
+						className={`flex flex-col items-start mr-4 px-4 py-2 rounded-full ${
+							selectedCategory === item.name ? "bg-primary" : "bg-primary-100 border border-primary-100"
+						}`}
+					>
+						<Text
+							className={`text-sm ${
+								selectedCategory === item.name
+									? "text-white font-poppins-bold mt-0.5"
+									: "text-black font-poppins"
+							}`}
+						>
+							{item.name}
+						</Text>
+					</TouchableOpacity>
+				)
+			)}
 		</ScrollView>
 	);
 };

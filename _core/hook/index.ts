@@ -1,4 +1,4 @@
 import { useEvent } from "../hook/eventHook";
-import { useEventCategory } from "../hook/categoryHook";
+import { useCategory } from "../hook/categoryHook";
 
-export { useEvent, useEventCategory };
+export { useEvent, useCategory };

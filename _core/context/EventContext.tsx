@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useEffect, useState, ReactNode } from "react";
 import { client } from "@/_config/api/client";
 import { IEvent } from "@/_core/model/IEvent";
 

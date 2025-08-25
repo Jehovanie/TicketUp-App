@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import NoResults from "@/_shard/components/NoResult";
@@ -7,34 +7,19 @@ import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
 import Filters from "@/_shard/components/Filters";
 import { useEffect, useState } from "react";
-import { useEvent, useEventCategory } from "@/_core/hook";
+import { useEvent, useCategory } from "@/_core/hook";
 
 const Index = () => {
-	const loading = false;
-	const lastestPropertiesLoading = false;
-
 	const [properties, setProperties] = useState<any>([]);
 	const [latestProperties, setLatestProperties] = useState<any>([]);
-
 	const [allCategories, setAllsProperties] = useState<any>([]);
 
-	const handleCardPress = () => {};
-
-	const [search, setSearch] = useState("");
-	const [isSearchMode, setIsSearchMode] = useState(false);
-
-	const handleSearch = () => {};
-
-	const toggleSearchMode = () => {
-		setIsSearchMode((state) => !state);
-	};
-
 	const { events, isLoading: isLoadingEvent, errors: errorsEventContext } = useEvent();
-	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = useEventCategory();
+	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = useCategory();
 
 	useEffect(() => {
 		setLatestProperties(events);
-		setProperties(events.reverse());
+		setProperties([...events].reverse());
 	}, [isLoadingEvent]);
 
 	useEffect(() => {
@@ -46,13 +31,17 @@ const Index = () => {
 			<FlatList
 				data={properties}
 				renderItem={({ item }) => <Card event={item} />}
-				keyExtractor={(item) => item.id.toString()}
+				keyExtractor={(item) => item.uuid}
 				numColumns={2}
 				contentContainerClassName="pb-32"
 				columnWrapperClassName="flex gap-5 px-5"
 				showsVerticalScrollIndicator={false}
 				ListEmptyComponent={
-					loading ? <ActivityIndicator size="large" className="text-primary-300 mt-5" /> : <NoResults />
+					isLoadingEvent ? (
+						<ActivityIndicator size="large" className="text-primary-300 mt-5" />
+					) : (
+						<NoResults />
+					)
 				}
 				ListHeaderComponent={
 					<View>
@@ -93,7 +82,7 @@ const Index = () => {
 								</TouchableOpacity>
 							</View>
 
-							{lastestPropertiesLoading ? (
+							{isLoadingEvent ? (
 								<ActivityIndicator size="large" className="text-primary-300 mt-5" />
 							) : !latestProperties || latestProperties.length === 0 ? (
 								<NoResults />
@@ -116,7 +105,7 @@ const Index = () => {
 									<Text className="text-base font-poppins-medium text-primary">See all</Text>
 								</TouchableOpacity>
 							</View>
-							<Filters categories={allCategories.reverse()} />
+							<Filters categories={[...allCategories].reverse()} />
 						</View>
 					</View>
 				}

@@ -1,8 +1,21 @@
-import { useContext } from "react";
-import { CategoryContext } from "../context/CategoryContext";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/_config/store";
+import {
+	selectCategories,
+	fetchCategories,
+	selectCategoriesLoading,
+} from "@/_config/features/categories/categorie.slice";
 
-export function useEventCategory() {
-    const context = useContext(CategoryContext);
-    if (!context) throw new Error("useTheme doit être utilisé dans ThemeProvider");
-    return context;
+export function useCategory() {
+	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		dispatch(fetchCategories());
+	}, [dispatch]);
+
+	return {
+		categories: useAppSelector(selectCategories),
+		isLoading: useAppSelector(selectCategoriesLoading),
+		errors: [],
+	};
 }
