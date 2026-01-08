@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Image, Text, TextInput, TouchableOpacity, View, Dimensions } from "react-native";
+import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View, Dimensions, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -29,13 +29,8 @@ const Index = () => {
 		router.push(`/(root)/event/${eventId}`);
 	};
 
-	const [search, setSearch] = useState("");
-	const [isSearchMode, setIsSearchMode] = useState(false);
-
-	const handleSearch = () => {};
-
-	const toggleSearchMode = () => {
-		setIsSearchMode((state) => !state);
+	const handleNavigateToExplore = () => {
+		router.push("/(root)/(tabs)/explore");
 	};
 
 	const eventContext = useContext(EventContext);
@@ -58,155 +53,151 @@ const Index = () => {
 
 	return (
 		<SafeAreaView className="bg-gray-50 flex-1">
-			<FlatList
-				data={properties}
-				renderItem={({ item }) => <Card event={item} onPress={() => handleCardPress(item.id)} />}
-				keyExtractor={(item) => item.id.toString()}
-				numColumns={2}
-				contentContainerClassName="pb-32"
-				columnWrapperClassName="flex gap-4 px-4"
-				showsVerticalScrollIndicator={false}
-				ListEmptyComponent={
-					loading ? <ActivityIndicator size="large" className="text-primary-300 mt-5" /> : <NoResults />
-				}
-				ListHeaderComponent={
-					<View>
-						{/* Header Section with Gradient */}
-						<LinearGradient
-							colors={["#5C27C0", "#7C3AED"]}
-							start={{ x: 0, y: 0 }}
-							end={{ x: 1, y: 1 }}
-							className="pb-8 rounded-b-[40px]"
-						>
-							{/* Top Bar */}
-							<View className="px-5 pt-2">
-								<View className="flex-row items-center justify-between mb-6">
-									<View>
-										<Text className="text-white/70 text-sm font-poppins">Welcome back 👋</Text>
-										<Text className="text-2xl font-poppins-bold text-white">Discover Events</Text>
-									</View>
-									<View className="flex-row items-center gap-3">
-										<TouchableOpacity className="bg-white/20 p-3 rounded-full">
-											<Image source={icons.bell} tintColor="#FFFFFF" className="size-5" />
-										</TouchableOpacity>
-										<TouchableOpacity className="bg-white/20 p-3 rounded-full">
-											<Image source={icons.search} tintColor="#FFFFFF" className="size-5" />
-										</TouchableOpacity>
-									</View>
+			<ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
+				{/* Header fixe avec gradient et sections avant This Week */}
+				<View>
+					{/* Header Section with Gradient */}
+					<LinearGradient
+						colors={["#5C27C0", "#7C3AED"]}
+						start={{ x: 0, y: 0 }}
+						end={{ x: 1, y: 1 }}
+						className="pb-8 rounded-b-[40px]"
+					>
+						{/* Top Bar */}
+						<View className="px-5 pt-4 pb-6">
+							<View className="flex-row items-center justify-between">
+								<View className="flex-1">
+									<Text className="text-white/70 text-sm font-poppins mb-1">Welcome back 👋</Text>
+									<Text className="text-3xl font-poppins-bold text-white">Discover Events</Text>
 								</View>
-
-								{/* Search Bar */}
-								<View className="bg-white/20 rounded-2xl flex-row items-center px-4 py-3 mb-6">
-									<Image source={icons.search} tintColor="#FFFFFF" className="size-5" />
-									<TextInput
-										placeholder="Search events, artists..."
-										placeholderTextColor="rgba(255,255,255,0.6)"
-										className="flex-1 ml-3 text-white font-poppins"
-										value={search}
-										onChangeText={setSearch}
-									/>
-									<TouchableOpacity className="bg-white/20 p-2 rounded-xl">
-										<Image source={icons.filter} tintColor="#FFFFFF" className="size-5" />
+								<View className="flex-row items-center gap-3">
+									<TouchableOpacity className="bg-white/20 p-3 rounded-full">
+										<Image source={icons.bell} tintColor="#FFFFFF" className="size-5" />
+									</TouchableOpacity>
+									<TouchableOpacity
+										className="bg-white/20 p-3 rounded-full"
+										onPress={() => router.push("/(root)/(tabs)/explore")}
+									>
+										<Image source={icons.search} tintColor="#FFFFFF" className="size-5" />
 									</TouchableOpacity>
 								</View>
 							</View>
+						</View>
 
-							{/* Featured Event Banner */}
-							<View className="px-5">
-								<TouchableOpacity className="relative h-[200px] w-full rounded-3xl overflow-hidden">
-									<Image source={images.imageiDragons} className="size-full" resizeMode="cover" />
-									<LinearGradient
-										colors={["transparent", "rgba(0,0,0,0.8)"]}
-										className="absolute inset-0"
-									/>
-									
-									{/* Live Badge */}
-									<View className="absolute top-4 left-4 bg-red-500 px-3 py-1 rounded-full flex-row items-center">
-										<View className="w-2 h-2 bg-white rounded-full mr-2" />
-										<Text className="text-white text-xs font-poppins-bold">FEATURED</Text>
-									</View>
+						{/* Featured Event Banner */}
+						<View className="px-5">
+							<TouchableOpacity className="relative h-[200px] w-full rounded-3xl overflow-hidden">
+								<Image source={images.imageiDragons} className="size-full" resizeMode="cover" />
+								<LinearGradient
+									colors={["transparent", "rgba(0,0,0,0.8)"]}
+									className="absolute inset-0"
+								/>
 
-									<View className="absolute bottom-4 left-4 right-4">
-										<Text className="font-poppins-bold text-white text-xl mb-1">
-											Imagine Dragons
-										</Text>
-										<View className="flex-row items-center justify-between">
-											<View className="flex-row items-center">
-												<Image source={icons.location} className="size-4 mr-1" tintColor="#fff" />
-												<Text className="font-poppins text-white/80 text-sm">
-													Los Angeles, CA
-												</Text>
-											</View>
-											<View className="bg-white px-4 py-2 rounded-full">
-												<Text className="font-poppins-bold text-primary-300 text-sm">
-													From $145
-												</Text>
-											</View>
+								{/* Live Badge */}
+								<View className="absolute top-4 left-4 bg-red-500 px-3 py-1 rounded-full flex-row items-center">
+									<View className="w-2 h-2 bg-white rounded-full mr-2" />
+									<Text className="text-white text-xs font-poppins-bold">FEATURED</Text>
+								</View>
+
+								<View className="absolute bottom-4 left-4 right-4">
+									<Text className="font-poppins-bold text-white text-xl mb-1">Imagine Dragons</Text>
+									<View className="flex-row items-center justify-between">
+										<View className="flex-row items-center">
+											<Image source={icons.location} className="size-4 mr-1" tintColor="#fff" />
+											<Text className="font-poppins text-white/80 text-sm">Los Angeles, CA</Text>
+										</View>
+										<View className="bg-white px-4 py-2 rounded-full">
+											<Text className="font-poppins-bold text-primary-300 text-sm">
+												From $145
+											</Text>
 										</View>
 									</View>
-								</TouchableOpacity>
-							</View>
-						</LinearGradient>
-
-						{/* This Week Section */}
-						<View className="px-5 mt-6 mb-5">
-							<View className="flex-row items-center justify-between mb-4">
-								<View>
-									<Text className="text-xl font-poppins-bold text-gray-800">This Week</Text>
-									<Text className="text-sm font-poppins text-gray-500">Don't miss out!</Text>
 								</View>
-								<TouchableOpacity className="flex-row items-center">
-									<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">See all</Text>
-									<Image source={icons.rightArrow} className="size-4" tintColor="#5C27C0" />
-								</TouchableOpacity>
-							</View>
+							</TouchableOpacity>
+						</View>
+					</LinearGradient>
+				</View>
 
-							{lastestPropertiesLoading ? (
-								<ActivityIndicator size="large" className="text-primary-300 mt-5" />
-							) : !latestProperties || latestProperties.length === 0 ? (
-								<NoResults />
-							) : (
-								<FlatList
-									data={latestProperties}
-									renderItem={({ item }) => <FeaturedCard event={item} onPress={() => handleCardPress(item.id)} />}
-									keyExtractor={(item) => item.id.toString()}
-									horizontal
-									bounces={false}
-									showsHorizontalScrollIndicator={false}
-									contentContainerClassName="gap-4"
-									snapToInterval={width * 0.75 + 16}
-									decelerationRate="fast"
-								/>
-							)}
+				{/* This Week Section - STICKY */}
+				<View className="bg-gray-50">
+					<View className="px-5 py-6">
+						<View className="flex-row items-center justify-between mb-4">
+							<View>
+								<Text className="text-xl font-poppins-bold text-gray-800">This Week</Text>
+								<Text className="text-sm font-poppins text-gray-500">Don't miss out!</Text>
+							</View>
+							<TouchableOpacity className="flex-row items-center" onPress={handleNavigateToExplore}>
+								<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">See all</Text>
+								<Image source={icons.rightArrow} className="size-4" tintColor="#5C27C0" />
+							</TouchableOpacity>
 						</View>
 
-						{/* Categories & Recommendations */}
-						<View className="px-5">
-							<View className="flex-row items-center justify-between mb-4">
-								<View>
-									<Text className="text-xl font-poppins-bold text-gray-800">Explore</Text>
-									<Text className="text-sm font-poppins text-gray-500">Browse by category</Text>
-								</View>
-								<TouchableOpacity className="flex-row items-center">
-									<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">See all</Text>
-									<Image source={icons.rightArrow} className="size-4" tintColor="#5C27C0" />
-								</TouchableOpacity>
-							</View>
-							<Filters categories={allCategories.reverse()} />
-						</View>
+						{lastestPropertiesLoading ? (
+							<ActivityIndicator size="large" className="text-primary-300 mt-5" />
+						) : !latestProperties || latestProperties.length === 0 ? (
+							<NoResults />
+						) : (
+							<FlatList
+								data={latestProperties}
+								renderItem={({ item }) => (
+									<FeaturedCard event={item} onPress={() => handleCardPress(item.id)} />
+								)}
+								keyExtractor={(item) => item.id.toString()}
+								horizontal
+								bounces={false}
+								showsHorizontalScrollIndicator={false}
+								contentContainerClassName="gap-4"
+								snapToInterval={width * 0.75 + 16}
+								decelerationRate="fast"
+							/>
+						)}
+					</View>
 
-						{/* All Events Header */}
-						<View className="px-5 mt-6 mb-2">
-							<View className="flex-row items-center justify-between">
-								<View>
-									<Text className="text-xl font-poppins-bold text-gray-800">Upcoming Events</Text>
-									<Text className="text-sm font-poppins text-gray-500">{properties.length} events near you</Text>
-								</View>
+					{/* Categories & Recommendations */}
+					<View className="px-5 pb-5">
+						<View className="flex-row items-center justify-between mb-4">
+							<View>
+								<Text className="text-xl font-poppins-bold text-gray-800">Explore</Text>
+								<Text className="text-sm font-poppins text-gray-500">Browse by category</Text>
+							</View>
+							<TouchableOpacity className="flex-row items-center" onPress={handleNavigateToExplore}>
+								<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">See all</Text>
+								<Image source={icons.rightArrow} className="size-4" tintColor="#5C27C0" />
+							</TouchableOpacity>
+						</View>
+						<Filters categories={allCategories.reverse()} />
+					</View>
+
+					{/* All Events Header */}
+					<View className="px-5 mb-2">
+						<View className="flex-row items-center justify-between">
+							<View>
+								<Text className="text-xl font-poppins-bold text-gray-800">Upcoming Events</Text>
+								<Text className="text-sm font-poppins text-gray-500">
+									{properties.length} events near you
+								</Text>
 							</View>
 						</View>
 					</View>
-				}
-			/>
+				</View>
+
+				{/* Upcoming Events - Section scrollable */}
+				<View className="px-4 pb-32">
+					{loading ? (
+						<ActivityIndicator size="large" className="text-primary-300 mt-5" />
+					) : properties.length === 0 ? (
+						<NoResults />
+					) : (
+						<View className="flex-row flex-wrap gap-4">
+							{properties.map((item: any) => (
+								<View key={item.id.toString()} style={{ width: (width - 48) / 2 }}>
+									<Card event={item} onPress={() => handleCardPress(item.id)} />
+								</View>
+							))}
+						</View>
+					)}
+				</View>
+			</ScrollView>
 		</SafeAreaView>
 	);
 };

@@ -9,16 +9,18 @@ import { CategoryContext } from "@/_core/context/CategoryContext";
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { client } from "@/_config/api/client";
+import { IEvent } from "@/_core/model/IEvent";
 
 const Explore = () => {
 	const router = useRouter();
-	
+
 	const eventContext = useContext(EventContext);
 	const categoriesContext = useContext(CategoryContext);
-	
+
 	if (!eventContext) throw new Error("Must be used inside EventProvider");
 	if (!categoriesContext) throw new Error("Must be used inside CategoryContext");
-	
+
 	const { events, isLoading, errors } = eventContext;
 	const { categories, isLoading: isLoadingCategories } = categoriesContext;
 
@@ -26,31 +28,77 @@ const Explore = () => {
 	const [search, setSearch] = useState("");
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [selectedCategory, setSelectedCategory] = useState("All");
+	const [isSearching, setIsSearching] = useState(false);
+	const [isSearchMode, setIsSearchMode] = useState(false);
+	const [searchResults, setSearchResults] = useState<Partial<IEvent>[]>([]);
 
 	const handleCardPress = (eventId: number) => {
 		router.push(`/(root)/event/${eventId}`);
 	};
 
-	useEffect(() => {
-		let result = events;
-		
-		// Filter by search
-		if (search) {
-			result = result.filter((event: any) => 
-				event.title.toLowerCase().includes(search.toLowerCase()) ||
-				event.location?.name?.toLowerCase().includes(search.toLowerCase())
-			);
+	const handleSearch = async () => {
+		if (!search.trim() && selectedCategory === "All") {
+			setIsSearchMode(false);
+			setSearchResults([]);
+			return;
 		}
-		
+
+		setIsSearching(true);
+		setIsSearchMode(true);
+
+		try {
+			const params = new URLSearchParams();
+			if (search.trim()) {
+				params.append("title", search.trim());
+			}
+			if (selectedCategory !== "All") {
+				const category = categories.find((cat: any) => cat.name === selectedCategory);
+				if (category) {
+					params.append("category", category?.id.toString());
+				}
+			}
+
+			const response = await client.get<Partial<IEvent>[]>(`/api/events/search?${params.toString()}`);
+			setSearchResults(response.data);
+		} catch (error) {
+			console.error("Erreur lors de la recherche:", error);
+			setSearchResults([]);
+		} finally {
+			setIsSearching(false);
+		}
+	};
+
+	useEffect(() => {
+		// Si on est en mode recherche, utiliser les résultats de l'API
+		if (isSearchMode) {
+			setFilteredEvents(searchResults);
+			return;
+		}
+
+		// Sinon, filtrage local basique
+		let result = events;
+
 		// Filter by category
 		if (selectedCategory && selectedCategory !== "All") {
-			result = result.filter((event: any) => 
-				event.category?.name === selectedCategory
-			);
+			result = result.filter((event: any) => event.category?.name === selectedCategory);
 		}
-		
+
 		setFilteredEvents(result);
-	}, [isLoading, search, selectedCategory, events]);
+	}, [isLoading, search, selectedCategory, events, isSearchMode, searchResults]);
+
+	// Recherche automatique avec debounce
+	useEffect(() => {
+		if (search.trim() || selectedCategory !== "All") {
+			const timeoutId = setTimeout(() => {
+				handleSearch();
+			}, 500); // Délai de 500ms après la dernière frappe
+
+			return () => clearTimeout(timeoutId);
+		} else {
+			setIsSearchMode(false);
+			setSearchResults([]);
+		}
+	}, [search, selectedCategory]);
 
 	const handleCategoryPress = (categoryName: string) => {
 		setSelectedCategory(categoryName);
@@ -58,13 +106,16 @@ const Explore = () => {
 
 	const clearSearch = () => {
 		setSearch("");
+		setSelectedCategory("All");
+		setIsSearchMode(false);
+		setSearchResults([]);
 	};
 
 	return (
 		<SafeAreaView className="bg-gray-50 flex-1">
 			<FlatList
 				data={filteredEvents}
-				renderItem={({ item }) => 
+				renderItem={({ item }) =>
 					viewMode === "grid" ? (
 						<Card event={item} onPress={() => handleCardPress(item.id)} />
 					) : (
@@ -80,10 +131,12 @@ const Explore = () => {
 				columnWrapperClassName={viewMode === "grid" ? "flex gap-4 px-4" : undefined}
 				showsVerticalScrollIndicator={false}
 				ListEmptyComponent={
-					isLoading ? (
+					isLoading || isSearching ? (
 						<View className="flex-1 items-center justify-center py-20">
 							<ActivityIndicator size="large" color="#5C27C0" />
-							<Text className="text-gray-500 font-poppins mt-3">Loading events...</Text>
+							<Text className="text-gray-500 font-poppins mt-3">
+								{isSearching ? "Searching..." : "Loading events..."}
+							</Text>
 						</View>
 					) : (
 						<NoResults />
@@ -103,7 +156,9 @@ const Explore = () => {
 								<View className="flex-row items-center justify-between mb-5">
 									<View>
 										<Text className="text-2xl font-poppins-bold text-white">Explore</Text>
-										<Text className="text-sm font-poppins text-white/70">Find your next experience</Text>
+										<Text className="text-sm font-poppins text-white/70">
+											Find your next experience
+										</Text>
 									</View>
 									<TouchableOpacity className="bg-white/20 p-3 rounded-full">
 										<Image source={icons.filter} tintColor="#FFFFFF" className="size-5" />
@@ -119,6 +174,8 @@ const Explore = () => {
 										placeholder="Search events, venues, artists..."
 										placeholderTextColor="#9CA3AF"
 										className="flex-1 ml-3 text-gray-800 font-poppins"
+										onSubmitEditing={handleSearch}
+										returnKeyType="search"
 									/>
 									{search.length > 0 && (
 										<TouchableOpacity onPress={clearSearch} className="p-1">
@@ -139,7 +196,9 @@ const Explore = () => {
 										<Image source={icons.calendar} className="size-5" tintColor="#5C27C0" />
 									</View>
 									<View>
-										<Text className="text-2xl font-poppins-bold text-gray-800">{events.length}</Text>
+										<Text className="text-2xl font-poppins-bold text-gray-800">
+											{events.length}
+										</Text>
 										<Text className="text-xs font-poppins text-gray-500">Events</Text>
 									</View>
 								</View>
@@ -150,7 +209,9 @@ const Explore = () => {
 										<Image source={icons.location} className="size-5" tintColor="#5C27C0" />
 									</View>
 									<View>
-										<Text className="text-2xl font-poppins-bold text-gray-800">{categories.length}</Text>
+										<Text className="text-2xl font-poppins-bold text-gray-800">
+											{categories.length}
+										</Text>
 										<Text className="text-xs font-poppins text-gray-500">Categories</Text>
 									</View>
 								</View>
@@ -166,8 +227,8 @@ const Explore = () => {
 										key={index}
 										onPress={() => handleCategoryPress(item.name)}
 										className={`mr-3 px-5 py-3 rounded-2xl ${
-											selectedCategory === item.name 
-												? "bg-primary" 
+											selectedCategory === item.name
+												? "bg-primary"
 												: "bg-white border border-gray-200"
 										}`}
 										style={{ elevation: selectedCategory === item.name ? 4 : 1 }}
@@ -194,27 +255,27 @@ const Explore = () => {
 									{filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"} found
 								</Text>
 							</View>
-							
+
 							{/* View Toggle */}
 							<View className="flex-row bg-white rounded-xl p-1 shadow-sm">
-								<TouchableOpacity 
+								<TouchableOpacity
 									onPress={() => setViewMode("grid")}
 									className={`p-2 rounded-lg ${viewMode === "grid" ? "bg-primary" : ""}`}
 								>
-									<Image 
-										source={icons.filter} 
-										className="size-5" 
-										tintColor={viewMode === "grid" ? "#fff" : "#666"} 
+									<Image
+										source={icons.filter}
+										className="size-5"
+										tintColor={viewMode === "grid" ? "#fff" : "#666"}
 									/>
 								</TouchableOpacity>
-								<TouchableOpacity 
+								<TouchableOpacity
 									onPress={() => setViewMode("list")}
 									className={`p-2 rounded-lg ${viewMode === "list" ? "bg-primary" : ""}`}
 								>
-									<Image 
-										source={icons.chat} 
-										className="size-5" 
-										tintColor={viewMode === "list" ? "#fff" : "#666"} 
+									<Image
+										source={icons.chat}
+										className="size-5"
+										tintColor={viewMode === "list" ? "#fff" : "#666"}
 									/>
 								</TouchableOpacity>
 							</View>
