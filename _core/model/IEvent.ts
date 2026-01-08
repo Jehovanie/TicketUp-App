@@ -4,9 +4,6 @@ import { ITicketType } from "./ITicketType";
 import { IOrganizer } from "./IOrganizer";
 
 export interface IEvent {
-	"@context"?: string;
-	"@id"?: string;
-	"@type"?: string;
 	id: number;
 	title: string;
 	description: string;

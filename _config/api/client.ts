@@ -1,10 +1,11 @@
 import { environment } from "@/environment/environement";
 
 interface ClientResponse<T> {
+	message?: string;
 	status: number;
 	data: T;
-	header: Headers;
-	url: string;
+	header?: Headers;
+	url?: string;
 }
 
 export async function client<T>(
@@ -29,13 +30,15 @@ export async function client<T>(
 		if (body) config.body = JSON.stringify(body);
 
 		console.log(`Link : ${environment.apiUrl}${endPoint}`);
-		console.log("confi " + JSON.stringify(config));
+		console.log("config " + JSON.stringify(config));
+
 		const response = await window.fetch(`${environment.apiUrl}${endPoint}`, config);
 
-		const data = await response.json();
+		const { data, message, status } = await response.json();
 		if (response.ok) {
 			return Promise.resolve({
-				status: response.status,
+				status: status,
+				message: message,
 				data,
 				header: response.headers,
 				url: response.url,

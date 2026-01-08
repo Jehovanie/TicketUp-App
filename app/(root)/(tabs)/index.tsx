@@ -39,13 +39,18 @@ const Index = () => {
 	if (!eventContext) throw new Error("Must be used inside EventProvider");
 	if (!categoriesContext) throw new Error("Must be used inside CategoryContext");
 
-	const { events, isLoading: isLoadingEvent, errors: errorsEventContext } = eventContext;
+	const { events, isLoading: isLoadingEvent, errors: errorsEventContext, fetchEvents, currentPage, itemsPerPage } = eventContext;
 	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = categoriesContext;
 
+	// Exemple: Charger plus d'événements
+	const loadMoreEvents = () => {
+		fetchEvents(currentPage + 1, itemsPerPage);
+	};
+
 	useEffect(() => {
-		setLatestProperties(events);
-		setProperties(events.reverse());
-	}, [isLoadingEvent]);
+		setLatestProperties([...events]);
+		setProperties([...events].reverse());
+	}, [events]);
 
 	useEffect(() => {
 		setAllsProperties(categories);

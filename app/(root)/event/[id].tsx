@@ -8,6 +8,7 @@ import images from "@/_shard/constants/images";
 import { IEvent } from "@/_core/model/IEvent";
 import { client } from "@/_config/api/client";
 
+
 const EventDetails = () => {
 	const { id } = useLocalSearchParams();
 	const router = useRouter();
@@ -85,33 +86,33 @@ const EventDetails = () => {
 
 	return (
 		<SafeAreaView className="flex-1 bg-white">
-			<ScrollView showsVerticalScrollIndicator={false}>
-				{/* Header Image */}
-				<View className="relative h-80 w-full">
-					<Image source={event.imageUrl && event.imageUrl.length > 0 ? { uri: event.imageUrl[0] } : images.maitreGims} className="w-full h-full" resizeMode="cover" />
+			{/* Fixed Header Image */}
+			<View className="h-80 w-full">
+				<Image source={event.imageUrl && event.imageUrl.length > 0 ? { uri: event.imageUrl[0] } : images.maitreGims} className="w-full h-full" resizeMode="cover" />
 
-					{/* Gradient Overlay */}
-					<View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
+				{/* Gradient Overlay */}
+				<View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
 
-					{/* Back Button */}
-					<TouchableOpacity onPress={() => router.back()} className="absolute top-4 left-4 bg-white/90 rounded-full p-3 shadow-lg">
-						<Image source={icons.backArrow} className="w-6 h-6" tintColor="#000" />
-					</TouchableOpacity>
+				{/* Back Button */}
+				<TouchableOpacity onPress={() => router.back()} className="absolute top-4 left-4 bg-white/90 rounded-full p-3 shadow-lg">
+					<Image source={icons.backArrow} className="w-6 h-6" tintColor="#000" />
+				</TouchableOpacity>
 
-					{/* Share Button */}
-					<TouchableOpacity className="absolute top-4 right-4 bg-white/90 rounded-full p-3 shadow-lg">
-						<Image source={icons.heart} className="w-6 h-6" tintColor="#ff6b6b" />
-					</TouchableOpacity>
+				{/* Share Button */}
+				<TouchableOpacity className="absolute top-4 right-4 bg-white/90 rounded-full p-3 shadow-lg">
+					<Image source={icons.heart} className="w-6 h-6" tintColor="#ff6b6b" />
+				</TouchableOpacity>
 
-					{/* Category Badge */}
-					<View className="absolute bottom-4 left-4 flex-row items-center">
-						<View style={{ backgroundColor: event.category.color || "#0061ff" }} className="px-4 py-2 rounded-full">
-							<Text className="font-poppins-semibold text-white text-sm">{event.category.name}</Text>
-						</View>
+				{/* Category Badge */}
+				<View className="absolute bottom-4 left-4 flex-row items-center">
+					<View style={{ backgroundColor: event.category.color || "#0061ff" }} className="px-4 py-2 rounded-full">
+						<Text className="font-poppins-semibold text-white text-sm">{event.category.name}</Text>
 					</View>
 				</View>
+			</View>
 
-				{/* Content */}
+			{/* Scrollable Content */}
+			<ScrollView showsVerticalScrollIndicator={false} className="flex-1">
 				<View className="px-5 py-6 mb-12">
 					{/* Title & Status */}
 					<View className="flex-row justify-between items-start mb-4">
