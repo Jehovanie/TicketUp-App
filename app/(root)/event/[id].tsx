@@ -112,7 +112,7 @@ const EventDetails = () => {
 				</View>
 
 				{/* Content */}
-				<View className="px-5 py-6">
+				<View className="px-5 py-6 mb-12">
 					{/* Title & Status */}
 					<View className="flex-row justify-between items-start mb-4">
 						<View className="flex-1 pr-4">
