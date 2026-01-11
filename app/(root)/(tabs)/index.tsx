@@ -1,9 +1,10 @@
-import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View, Dimensions, ScrollView } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View, Dimensions, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
 import NoResults from "@/_shard/components/NoResult";
 import { Card, FeaturedCard } from "@/_shard/components/Cards";
+import { FeaturedCardsSkeletonGroup, CardsSkeletonGroup } from "@/_shard/components/Skeleton";
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
 import Filters from "@/_shard/components/Filters";
@@ -15,9 +16,9 @@ import { useRouter } from "expo-router";
 const { width } = Dimensions.get("window");
 
 const Index = () => {
-	const loading = false;
 	const lastestPropertiesLoading = false;
 
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [properties, setProperties] = useState<any>([]);
 	const [latestProperties, setLatestProperties] = useState<any>([]);
 
@@ -48,6 +49,7 @@ const Index = () => {
 	};
 
 	useEffect(() => {
+		setIsLoading(isLoadingEvent);
 		setLatestProperties([...events]);
 		setProperties([...events].reverse());
 	}, [events]);
@@ -137,9 +139,9 @@ const Index = () => {
 							</TouchableOpacity>
 						</View>
 
-						{lastestPropertiesLoading ? (
-							<ActivityIndicator size="large" className="text-primary-300 mt-5" />
-						) : !latestProperties || latestProperties.length === 0 ? (
+						{isLoading ? (
+							<FeaturedCardsSkeletonGroup count={3} />
+						) : (!isLoading && latestProperties.length === 0) ? (
 							<NoResults />
 						) : (
 							<FlatList
@@ -188,9 +190,9 @@ const Index = () => {
 
 				{/* Upcoming Events - Section scrollable */}
 				<View className="px-4 pb-32">
-					{loading ? (
-						<ActivityIndicator size="large" className="text-primary-300 mt-5" />
-					) : properties.length === 0 ? (
+					{isLoading ? (
+						<CardsSkeletonGroup count={6} />
+					) : (!isLoading && properties.length === 0) ? (
 						<NoResults />
 					) : (
 						<View className="flex-row flex-wrap gap-4">

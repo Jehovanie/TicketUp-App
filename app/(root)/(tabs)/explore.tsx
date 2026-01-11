@@ -239,7 +239,7 @@ const Explore = () => {
 							{search ? "Search Results" : "All Events"}
 						</Text>
 						<Text className="text-sm font-poppins text-gray-500">
-							{filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"} found
+							{eventsTotal} {eventsTotal === 1 ? "event" : "events"} found
 						</Text>
 					</View>
 

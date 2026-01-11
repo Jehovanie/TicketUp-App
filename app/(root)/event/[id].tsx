@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -7,6 +7,7 @@ import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
 import { IEvent } from "@/_core/model/IEvent";
 import { client } from "@/_config/api/client";
+import { EventDetailSkeleton } from "@/_shard/components/Skeleton";
 
 
 const EventDetails = () => {
@@ -67,8 +68,10 @@ const EventDetails = () => {
 
 	if (loading) {
 		return (
-			<SafeAreaView className="flex-1 bg-white items-center justify-center">
-				<ActivityIndicator size="large" color="#0061ff" />
+			<SafeAreaView className="flex-1 bg-white">
+				<ScrollView showsVerticalScrollIndicator={false}>
+					<EventDetailSkeleton />
+				</ScrollView>
 			</SafeAreaView>
 		);
 	}
