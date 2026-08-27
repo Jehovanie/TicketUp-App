@@ -1,10 +1,11 @@
-import { Redirect, Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { View, Text, Image, ImageSourcePropType, ActivityIndicator } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import icons from "@/_shard/constants/icons";
 import { colors } from "@/_shard/constants/colors";
 import { TAB_BAR_HEIGHT } from "@/_shard/constants/layout";
+import { useSession } from "@/_core/context/SessionContext";
 
 const TabIcon = ({ focused, icon, title }: { focused: boolean; icon: ImageSourcePropType; title: string }) => (
 	<View className="flex-1 mt-3 items-center">
@@ -30,10 +31,11 @@ const TabIcon = ({ focused, icon, title }: { focused: boolean; icon: ImageSource
 );
 
 const AppHomeLayout = () => {
-	const { loading, isLogged } = { loading: false, isLogged: true };
+	const { isLogged, isLoading } = useSession();
 	const insets = useSafeAreaInsets();
+	const router = useRouter();
 
-	if (loading) {
+	if (isLoading) {
 		return (
 			<SafeAreaView className="bg-surface h-full items-center justify-center">
 				<ActivityIndicator size="large" color={colors.primary[600]} />
@@ -41,8 +43,9 @@ const AppHomeLayout = () => {
 		);
 	}
 
-	if (!isLogged) return <Redirect href="./signin" />;
-
+	// Pas de `<Redirect href="./signin" />` ici : la consultation est publique.
+	// La barre reste visible en permanence — c'est le troisième onglet qui
+	// change de nature selon la session.
 	return (
 		<Tabs
 			screenOptions={{
@@ -79,8 +82,29 @@ const AppHomeLayout = () => {
 			<Tabs.Screen
 				name="profile"
 				options={{
-					title: "Profil",
-					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.person} title="Profil" />,
+					title: isLogged ? "Profil" : "Se connecter",
+					tabBarIcon: ({ focused }) => (
+						<TabIcon
+							focused={focused}
+							icon={icons.person}
+							title={isLogged ? "Profil" : "Se connecter"}
+						/>
+					),
+				}}
+				listeners={{
+					// Déconnecté, l'onglet est un raccourci vers la connexion, pas une
+					// destination : on intercepte avant la navigation plutôt que de
+					// rediriger depuis `profile`. L'écran ne s'affiche donc jamais une
+					// fraction de seconde, et l'onglet ne prend pas l'état actif.
+					tabPress: (event) => {
+						if (isLogged) return;
+
+						event.preventDefault();
+						router.push({
+							pathname: "/(root)/(auth)/signin",
+							params: { redirect: "/(root)/(tabs)" },
+						});
+					},
 				}}
 			/>
 		</Tabs>

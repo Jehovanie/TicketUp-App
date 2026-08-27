@@ -9,6 +9,8 @@ import { LOCALE, CURRENCY_SYMBOL, formatPrice, isFree } from "@/_shard/constants
 import FreeBadge from "@/_shard/components/FreeBadge";
 import { IEvent } from "@/_core/model/IEvent";
 import { getEventById } from "@/_config/api/events";
+import { useRequireAuth } from "@/_core/hooks/useRequireAuth";
+import { useSession } from "@/_core/context/SessionContext";
 
 const EventDetails = () => {
 	const { id } = useLocalSearchParams();
@@ -17,6 +19,8 @@ const EventDetails = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
+	const requireAuth = useRequireAuth();
+	const { isLogged } = useSession();
 
 	useEffect(() => {
 		const fetchEventDetails = async () => {
@@ -61,11 +65,16 @@ const EventDetails = () => {
 		return date.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
 	};
 
+	// La consultation est publique ; c'est la réservation qui exige un compte.
+	// `requireAuth` envoie vers la connexion en mémorisant cette fiche, pour y
+	// revenir une fois connecté plutôt que de retomber sur l'accueil.
 	const handleBookTicket = () => {
-		if (selectedTicket !== null) {
-			// Navigate to booking page
+		if (selectedTicket === null) return;
+
+		requireAuth(() => {
+			// TODO : écran de réservation (aucun endpoint de commande côté API).
 			console.log("Booking ticket:", selectedTicket);
-		}
+		});
 	};
 
 	if (loading) {
@@ -452,8 +461,16 @@ const EventDetails = () => {
 								className="py-5 flex-row items-center justify-center"
 								style={{ elevation: 8 }}
 							>
-								<Image source={icons.wallet} className="size-6 mr-3" tintColor="#FFF" />
-								<Text className="font-poppins-bold text-white text-lg">Réserver</Text>
+								<Image
+									source={isLogged ? icons.wallet : icons.person}
+									className="size-6 mr-3"
+									tintColor="#FFF"
+								/>
+								{/* Le bouton annonce ce qui va se passer : on n'envoie pas
+								    l'utilisateur vers un écran de connexion par surprise. */}
+								<Text className="font-poppins-bold text-white text-lg">
+									{isLogged ? "Réserver" : "Se connecter pour réserver"}
+								</Text>
 								<Image source={icons.rightArrow} className="size-5 ml-3" tintColor="#FFF" />
 							</LinearGradient>
 						</TouchableOpacity>

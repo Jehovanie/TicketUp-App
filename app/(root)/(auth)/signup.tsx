@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const SignUp = () => {
 	return (
-		<SafeAreaView className="bg-primary-300 flex-1 relative h-screen">
+		<SafeAreaView className="bg-primary-950 flex-1 relative h-screen">
 			<View className="w-full h-[250px]">
 				<AuthLogo />
 			</View>
@@ -61,7 +61,7 @@ const SignUp = () => {
 							<Text className="text-red-600 text-sm ms-1 font-poppins-light">Confirmation requise</Text>
 						</View>
 
-						<TouchableOpacity className="bg-purple-600 rounded-2xl py-3 mb-4 items-center">
+						<TouchableOpacity className="bg-primary rounded-2xl py-3 mb-4 items-center">
 							<Text className="text-white font-poppins-bold text-xl">S’inscrire</Text>
 						</TouchableOpacity>
 					</View>

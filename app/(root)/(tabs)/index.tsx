@@ -32,7 +32,9 @@ import { GRADIENTS, colors } from "@/_shard/constants/colors";
 import { LIST_BOTTOM_GUTTER, TAB_BAR_HEIGHT } from "@/_shard/constants/layout";
 import { EventContext } from "@/_core/context/EventContext";
 import { CategoryContext } from "@/_core/context/CategoryContext";
+import { useSession } from "@/_core/context/SessionContext";
 import { IEventListItem } from "@/_core/model/IEvent";
+import { displayName } from "@/_core/model/IUser";
 import { ApiError } from "@/_config/api/client";
 import {
 	buildCategoryColorMap,
@@ -123,6 +125,12 @@ const Home = () => {
 	const tabBarHeight = useContext(BottomTabBarHeightContext);
 	const listBottomPadding =
 		(tabBarHeight ?? TAB_BAR_HEIGHT + insets.bottom) + LIST_BOTTOM_GUTTER;
+
+	const { isLogged, user } = useSession();
+	const goToSignIn = useCallback(
+		() => router.push({ pathname: "/(root)/(auth)/signin", params: { redirect: "/(root)/(tabs)" } }),
+		[router]
+	);
 
 	const eventContext = useContext(EventContext);
 	const categoryContext = useContext(CategoryContext);
@@ -338,7 +346,9 @@ const Home = () => {
 								<View className="px-5 pt-2">
 									<View className="flex-row items-center justify-between">
 										<View className="flex-1">
-											<Text className="font-poppins text-white/60 text-xs">{greeting()}</Text>
+											<Text className="font-poppins text-white/60 text-xs">
+												{isLogged ? `${greeting()}, ${displayName(user)}` : greeting()}
+											</Text>
 											<Text className="font-poppins-bold text-white text-[22px] leading-7 mt-0.5">
 												Trouvez votre prochaine sortie
 											</Text>
@@ -356,12 +366,29 @@ const Home = () => {
 											/>
 										</TouchableOpacity>
 
-										<TouchableOpacity activeOpacity={0.8} className="ml-2">
-											<Image
-												source={images.avatar}
-												className="size-11 rounded-full border border-white/20"
-											/>
-										</TouchableOpacity>
+										{/* Connecté : accès au profil. Sinon : raccourci vers la
+										    connexion — en icône seule, l'onglet du bas portant déjà
+										    le libellé « Se connecter ». */}
+										{isLogged ? (
+											<TouchableOpacity
+												activeOpacity={0.8}
+												onPress={() => router.push("/(root)/(tabs)/profile")}
+												className="ml-2"
+											>
+												<Image
+													source={images.avatar}
+													className="size-11 rounded-full border border-white/20"
+												/>
+											</TouchableOpacity>
+										) : (
+											<TouchableOpacity
+												activeOpacity={0.8}
+												onPress={goToSignIn}
+												className="size-11 items-center justify-center rounded-full bg-white/10 border border-white/15 ml-2"
+											>
+												<Image source={icons.person} tintColor="#FFFFFF" className="size-5" />
+											</TouchableOpacity>
+										)}
 									</View>
 
 									{/* Recherche */}
