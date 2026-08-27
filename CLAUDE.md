@@ -66,14 +66,26 @@ Screens `useContext` these and throw if the value is missing. Detail screens byp
 
 NativeWind v4 — style with `className`, not `StyleSheet`. `app/global.css` holds the Tailwind directives and is fed to Metro via `withNativeWind` in `metro.config.js`.
 
-`tailwind.config.js` `content` only globs `./app/**` and `./_shard/components/**`. **Classes written anywhere else (e.g. `_core/`) will not be generated** — add the path to `content` if you place styled components elsewhere.
+`tailwind.config.js` `content` globs `./app/**` and `./_shard/**`. **Classes written outside those two trees (e.g. `_core/`) will not be generated** — keep styled components in `_shard/components/`, or add the path to `content`.
 
-Design tokens: `primary` `#5C27C0` (with `100`/`200`/`300` shades), `black-100/200/300`, `danger`. Fonts are `font-poppins`, `font-poppins-medium`, `-semibold`, `-bold`, `-extrabold`, `-light` (note: `poppins-light` is misconfigured in the Tailwind theme — it points at `Rubik-Light`, which is not loaded). Every Poppins face must be registered in both `app.json`'s `expo-font` plugin and `useFonts` in `app/_layout.tsx`.
+Design tokens live in **`_shard/constants/palette.js`** — a single CommonJS module `require`d by `tailwind.config.js` and re-exported, typed, by `_shard/constants/colors.ts`. Edit the palette there, never in the Tailwind config.
+
+The scheme is *bleu nuit & or*: `primary` (deep royal blue, `DEFAULT` = `#1B2A5B`, full `50`→`950` scale), `gold` (accent — prices, featured badges; used sparingly, never as a fill), `ink` (cool neutrals for text and borders), `surface` (`DEFAULT` page background / `raised` cards / `sunken` skeletons), plus `success` / `warning` / `danger`. The legacy `black-100/200/300` and `accent-100` aliases are kept, remapped onto `ink`, for screens not yet reworked.
+
+Use `colors`, `GRADIENTS`, `withAlpha()`, `readableOn()` and `coverGradient()` from `_shard/constants/colors.ts` wherever `className` cannot reach — `LinearGradient`, `tintColor`, `ActivityIndicator`, `RefreshControl`.
+
+Fonts are `font-poppins`, `font-poppins-light`, `-medium`, `-semibold`, `-bold`, `-extrabold`. Every Poppins face must be registered in both `app.json`'s `expo-font` plugin and `useFonts` in `app/_layout.tsx`.
 
 Code style: tabs for indentation, double quotes.
 
 ## Conventions in flight
 
-The codebase is mid-refactor from a real-estate template: several components and constants still carry property/rental naming (`properties`, `latestProperties`, `bed`/`bath` icons, `_shard/constants/data.ts` sample cards). Cards also render hardcoded placeholder images (`images.maitreGims`, `images.imageiDragons`) instead of `event.imageUrl`. Prefer event-domain names in new code.
+The codebase is mid-refactor from a real-estate template: several constants still carry property/rental naming (`bed`/`bath` icons, `_shard/constants/data.ts` sample cards). Prefer event-domain names in new code. `app/(root)/(tabs)/explore.tsx` and `profile.tsx` still hold template-era markup and `any`-typed state; the home screen, `Cards`, `Filters` and the empty states have been reworked.
+
+**No event carries an image.** `Event::$imageUrl` has no serialization group on the API side, so it is never returned. Cards therefore build their cover from the event's **category colour** (`Category::$color`) — see `EventCover` in `_shard/components/Cards.tsx`, the single place to change the day the back exposes images. Note that `color` is *not* in the `events:lists` group: `event.category` only carries `id` and `name`, so screens resolve the colour through `buildCategoryColorMap(categories)` from `CategoryContext` and pass it to cards via the `accent` prop.
+
+`GET /api/events` neither filters drafts (`status = false`) nor past events, and sorts by `createdAt` DESC. Any public listing must therefore rebuild its own programme with the selectors in **`_core/selectors/events.ts`** (`isPublished`, `isBookable`, `eventPhase`, `compareByStartAsc`, `minPriceTicket`, …) rather than rendering the raw array. Because that filtering happens client-side, a page of 20 can yield very few dates — the home screen keeps calling `loadMore()` until it holds enough.
+
+`ticket_type` can be empty (roughly one event in twelve): `minPriceTicket()` returns `null`, which is a third state distinct from a free ticket — render « Tarifs à venir », not « 0 Ar ».
 
 Branches: work lands on `develop` via feature branches (`features/<name>`); `main` is the release branch.

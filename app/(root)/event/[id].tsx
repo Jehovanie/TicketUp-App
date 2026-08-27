@@ -162,7 +162,7 @@ const EventDetails = () => {
 					{/* Location Card */}
 					<View className="bg-purple-50 rounded-2xl p-4 mb-5">
 						<View className="flex-row items-center">
-							<View className="bg-purple-100 rounded-full p-2 mr-3">
+							<View className="bg-primary-50 rounded-full p-2 mr-3">
 								<Image source={icons.location} className="w-5 h-5" tintColor="#8b5cf6" />
 							</View>
 							<View className="flex-1">
@@ -213,8 +213,8 @@ const EventDetails = () => {
 						<View className="mb-6">
 							<View className="flex-row items-center justify-between mb-3">
 								<View className="flex-row items-center">
-									<View className="bg-purple-100 p-2.5 rounded-xl mr-3">
-										<Image source={icons.wallet} className="size-6" tintColor="#5C27C0" />
+									<View className="bg-primary-50 p-2.5 rounded-xl mr-3">
+										<Image source={icons.wallet} className="size-6" tintColor="#1B2A5B" />
 									</View>
 									<View>
 										<Text className="font-poppins-bold text-xl text-gray-800">Billets disponibles</Text>
@@ -229,7 +229,7 @@ const EventDetails = () => {
 								) : isFree(maxPrice) ? (
 									<FreeBadge variant="solid" size="md" />
 								) : (
-									<Text className="font-poppins-bold text-lg text-primary-300">
+									<Text className="font-poppins-bold text-lg text-primary-700">
 										{minPrice === maxPrice ? formatPrice(minPrice) : `${minPrice.toLocaleString(LOCALE)} - ${formatPrice(maxPrice)}`}
 									</Text>
 								)}
@@ -240,7 +240,7 @@ const EventDetails = () => {
 						{event.ticket_type.map((ticket, index) => {
 							const isSelected = selectedTicket === ticket.id;
 							const gradientColors = [
-								{ from: "#5C27C0", to: "#7C3AED", bg: "#EDE9FE", badge: "#A78BFA" },
+								{ from: "#1B2A5B", to: "#22306A", bg: "#E1E8F8", badge: "#9AAFE4" },
 								{ from: "#0061FF", to: "#3B82F6", bg: "#DBEAFE", badge: "#60A5FA" },
 								{ from: "#F59E0B", to: "#FBBF24", bg: "#FEF3C7", badge: "#FCD34D" },
 								{ from: "#10B981", to: "#34D399", bg: "#DCFCE7", badge: "#6EE7B7" },
@@ -433,8 +433,8 @@ const EventDetails = () => {
 								)}
 							</View>
 							{!isFree(selectedTicketPrice) && (
-								<View className="bg-purple-100 px-3 py-1.5 rounded-full">
-									<Text className="font-poppins-semibold text-xs text-primary-300">Taxes incluses</Text>
+								<View className="bg-primary-50 px-3 py-1.5 rounded-full">
+									<Text className="font-poppins-semibold text-xs text-primary-700">Taxes incluses</Text>
 								</View>
 							)}
 						</View>
@@ -446,7 +446,7 @@ const EventDetails = () => {
 							className="rounded-3xl overflow-hidden"
 						>
 							<LinearGradient
-								colors={["#5C27C0", "#7C3AED"]}
+								colors={["#1B2A5B", "#22306A"]}
 								start={{ x: 0, y: 0 }}
 								end={{ x: 1, y: 1 }}
 								className="py-5 flex-row items-center justify-center"

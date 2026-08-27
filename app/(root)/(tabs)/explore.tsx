@@ -80,7 +80,7 @@ const Explore = () => {
 				ListFooterComponent={
 					isLoadingMore ? (
 						<View className="py-6">
-							<ActivityIndicator size="small" color="#5C27C0" />
+							<ActivityIndicator size="small" color="#1B2A5B" />
 						</View>
 					) : null
 				}
@@ -91,7 +91,7 @@ const Explore = () => {
 				ListEmptyComponent={
 					isLoading ? (
 						<View className="flex-1 items-center justify-center py-20">
-							<ActivityIndicator size="large" color="#5C27C0" />
+							<ActivityIndicator size="large" color="#1B2A5B" />
 							<Text className="text-gray-500 font-poppins mt-3">Chargement des événements...</Text>
 						</View>
 					) : (
@@ -102,7 +102,7 @@ const Explore = () => {
 					<View>
 						{/* Header with Gradient */}
 						<LinearGradient
-							colors={["#5C27C0", "#7C3AED"]}
+							colors={["#1B2A5B", "#22306A"]}
 							start={{ x: 0, y: 0 }}
 							end={{ x: 1, y: 1 }}
 							className="pb-6 rounded-b-[40px]"
@@ -121,7 +121,7 @@ const Explore = () => {
 
 								{/* Search Bar */}
 								<View className="bg-white rounded-2xl flex-row items-center px-4 py-3 shadow-lg">
-									<Image source={icons.search} tintColor="#5C27C0" className="size-5" />
+									<Image source={icons.search} tintColor="#1B2A5B" className="size-5" />
 									<TextInput
 										value={search}
 										onChangeText={setSearch}
@@ -144,8 +144,8 @@ const Explore = () => {
 						<View className="flex-row px-5 py-4 gap-3">
 							<View className="flex-1 bg-white rounded-2xl p-4 shadow-sm">
 								<View className="flex-row items-center">
-									<View className="bg-purple-100 p-2 rounded-xl mr-3">
-										<Image source={icons.calendar} className="size-5" tintColor="#5C27C0" />
+									<View className="bg-primary-50 p-2 rounded-xl mr-3">
+										<Image source={icons.calendar} className="size-5" tintColor="#1B2A5B" />
 									</View>
 									<View>
 										<Text className="text-2xl font-poppins-bold text-gray-800">{events.length}</Text>
@@ -155,8 +155,8 @@ const Explore = () => {
 							</View>
 							<View className="flex-1 bg-white rounded-2xl p-4 shadow-sm">
 								<View className="flex-row items-center">
-									<View className="bg-purple-100 p-2 rounded-xl mr-3">
-										<Image source={icons.location} className="size-5" tintColor="#5C27C0" />
+									<View className="bg-primary-50 p-2 rounded-xl mr-3">
+										<Image source={icons.location} className="size-5" tintColor="#1B2A5B" />
 									</View>
 									<View>
 										<Text className="text-2xl font-poppins-bold text-gray-800">{categories.length}</Text>

@@ -22,7 +22,7 @@ const SettingsItem = ({
 	textStyle, 
 	showArrow = true, 
 	onPress,
-	iconBgColor = "bg-purple-100" 
+	iconBgColor = "bg-primary-50" 
 }: SettingsItemProp) => (
 	<TouchableOpacity 
 		onPress={onPress}
@@ -31,7 +31,7 @@ const SettingsItem = ({
 	>
 		<View className="flex-row items-center flex-1">
 			<View className={`${iconBgColor} p-3 rounded-xl mr-4`}>
-				<Image source={icon} className="size-5" tintColor="#5C27C0" />
+				<Image source={icon} className="size-5" tintColor="#1B2A5B" />
 			</View>
 			<View className="flex-1">
 				<Text className={`text-base font-poppins-semibold text-gray-800 ${textStyle}`}>{title}</Text>
@@ -40,7 +40,7 @@ const SettingsItem = ({
 		</View>
 		{showArrow && (
 			<View className="bg-gray-100 p-2 rounded-full">
-				<Image source={icons.rightArrow} tintColor="#5C27C0" className="size-4" />
+				<Image source={icons.rightArrow} tintColor="#1B2A5B" className="size-4" />
 			</View>
 		)}
 	</TouchableOpacity>
@@ -48,8 +48,8 @@ const SettingsItem = ({
 
 const StatCard = ({ value, label, icon }: { value: string; label: string; icon: ImageSourcePropType }) => (
 	<View className="flex-1 bg-white rounded-2xl p-4 items-center" style={{ elevation: 2 }}>
-		<View className="bg-purple-100 p-3 rounded-xl mb-2">
-			<Image source={icon} className="size-6" tintColor="#5C27C0" />
+		<View className="bg-primary-50 p-3 rounded-xl mb-2">
+			<Image source={icon} className="size-6" tintColor="#1B2A5B" />
 		</View>
 		<Text className="text-2xl font-poppins-bold text-gray-800">{value}</Text>
 		<Text className="text-xs font-poppins text-gray-500">{label}</Text>
@@ -80,7 +80,7 @@ const Profile = () => {
 			<ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-32">
 				{/* Header with Gradient */}
 				<LinearGradient
-					colors={["#5C27C0", "#7C3AED"]}
+					colors={["#1B2A5B", "#22306A"]}
 					start={{ x: 0, y: 0 }}
 					end={{ x: 1, y: 1 }}
 					className="pt-2 pb-20 rounded-b-[40px]"
@@ -141,7 +141,7 @@ const Profile = () => {
 							className="flex-1 bg-white rounded-2xl p-4 flex-row items-center justify-center border border-primary"
 							style={{ elevation: 2 }}
 						>
-							<Image source={icons.wallet} className="size-5 mr-2" tintColor="#5C27C0" />
+							<Image source={icons.wallet} className="size-5 mr-2" tintColor="#1B2A5B" />
 							<Text className="text-primary font-poppins-semibold">Paiements</Text>
 						</TouchableOpacity>
 					</View>
