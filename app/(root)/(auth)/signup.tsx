@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { Href, Link, useLocalSearchParams, useRouter } from "expo-router";
 
 import AuthShell, { AuthAlert, AuthSubmit } from "@/_shard/components/AuthShell";
 import AuthField from "@/_shard/components/AuthField";
+import { useSession } from "@/_core/context/SessionContext";
+import { LOCALE } from "@/_shard/constants/format";
 
 /**
  * Création de compte.
@@ -15,14 +17,24 @@ import AuthField from "@/_shard/components/AuthField";
  * première tentative faite : corriger une erreur la fait disparaître tout de
  * suite, sans réappuyer sur le bouton.
  *
- * ⚠️ **L'envoi n'est pas encore branché.** `_config/api/auth.ts` ne connaît
- * que `login` / `getMe` : l'API n'expose pas (encore) de création de compte.
- * La saisie est validée localement, puis l'écran le dit franchement plutôt que
- * de simuler un succès. Point d'accroche : `handleSignUp`.
+ * `POST /api/auth/register` délivre directement les jetons : l'inscription
+ * connecte, elle ne renvoie pas vers l'écran de connexion. Comme `signin`,
+ * l'écran honore un paramètre `redirect` pour ramener l'utilisateur là où il
+ * avait été arrêté.
  */
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * L'API n'exige que 4 caractères (`RegisterDTO`). On est volontairement plus
+ * strict ici : une billetterie garde un moyen de paiement et des places
+ * nominatives. La borne haute, elle, vient de bcrypt et n'est pas négociable.
+ */
 const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 72;
+/** `firstname` / `lastname` sont en `VARCHAR(50)`, `phone` en `VARCHAR(30)`. */
+const NAME_MAX_LENGTH = 50;
+const PHONE_MAX_LENGTH = 30;
 
 type Fields = {
 	firstname: string;
@@ -71,6 +83,8 @@ function validate(fields: Fields): Partial<Record<keyof Fields, string>> {
 
 const SignUp = () => {
 	const router = useRouter();
+	const { redirect } = useLocalSearchParams<{ redirect?: string }>();
+	const { signUp, isSubmitting, error, clearError } = useSession();
 
 	const lastnameRef = useRef<TextInput>(null);
 	const emailRef = useRef<TextInput>(null);
@@ -81,17 +95,16 @@ const SignUp = () => {
 	const [fields, setFields] = useState<Fields>(EMPTY);
 	/** Les messages n'apparaissent qu'après une première tentative d'envoi. */
 	const [submitted, setSubmitted] = useState(false);
-	const [notice, setNotice] = useState<string | null>(null);
 
 	const errors = validate(fields);
 	const errorOf = (field: keyof Fields) => (submitted ? errors[field] ?? null : null);
 
 	const set = (field: keyof Fields) => (value: string) => {
-		if (notice) setNotice(null);
+		if (error) clearError();
 		setFields((current) => ({ ...current, [field]: value }));
 	};
 
-	const handleSignUp = () => {
+	const handleSignUp = async () => {
 		setSubmitted(true);
 
 		const pending = validate(fields);
@@ -115,9 +128,20 @@ const SignUp = () => {
 			return;
 		}
 
-		// TODO: brancher la création de compte dès que l'API l'expose, puis
-		// enchaîner sur `signIn` pour connecter l'utilisateur sans ressaisie.
-		setNotice("La création de compte n’est pas encore disponible. Réessayez bientôt.");
+		const ok = await signUp({
+			email: fields.email.trim().toLowerCase(),
+			password: fields.password,
+			firstname: fields.firstname.trim(),
+			lastname: fields.lastname.trim(),
+			phone: fields.phone.trim(),
+			// L'interface est en français ; l'API stocke le code seul.
+			language: LOCALE.split("-")[0],
+		});
+
+		if (!ok) return;
+
+		// `replace` : le formulaire ne doit pas rester dans la pile de navigation.
+		router.replace((redirect as Href | undefined) ?? "/(root)/(tabs)");
 	};
 
 	const footer = (
@@ -132,7 +156,10 @@ const SignUp = () => {
 
 			<View className="mt-5 flex-row items-center justify-center">
 				<Text className="font-poppins text-sm text-ink-500">Vous avez déjà un compte ? </Text>
-				<Link href="/(root)/(auth)/signin" className="font-poppins-bold text-sm text-primary">
+				<Link
+					href={{ pathname: "/(root)/(auth)/signin", params: redirect ? { redirect } : {} }}
+					className="font-poppins-bold text-sm text-primary"
+				>
 					Se connecter
 				</Link>
 			</View>
@@ -145,7 +172,7 @@ const SignUp = () => {
 			subtitle="Quelques instants, et vos billets vous suivent."
 			footer={footer}
 		>
-			{notice && <AuthAlert message={notice} />}
+			{error && <AuthAlert message={error} />}
 
 			<Text className="mb-3 mt-6 font-poppins-semibold text-[11px] uppercase tracking-widest text-ink-400">
 				Votre identité
@@ -159,6 +186,8 @@ const SignUp = () => {
 					onChangeText={set("firstname")}
 					error={errorOf("firstname")}
 					placeholder="Hery"
+					maxLength={NAME_MAX_LENGTH}
+					editable={!isSubmitting}
 					autoCapitalize="words"
 					autoComplete="given-name"
 					textContentType="givenName"
@@ -175,6 +204,8 @@ const SignUp = () => {
 					onChangeText={set("lastname")}
 					error={errorOf("lastname")}
 					placeholder="Rakoto"
+					maxLength={NAME_MAX_LENGTH}
+					editable={!isSubmitting}
 					autoCapitalize="words"
 					autoComplete="family-name"
 					textContentType="familyName"
@@ -192,6 +223,7 @@ const SignUp = () => {
 				onChangeText={set("email")}
 				error={errorOf("email")}
 				placeholder="vous@exemple.com"
+				editable={!isSubmitting}
 				keyboardType="email-address"
 				autoCapitalize="none"
 				autoCorrect={false}
@@ -211,6 +243,8 @@ const SignUp = () => {
 				error={errorOf("phone")}
 				hint="Sert à retrouver vos billets."
 				placeholder="034 00 000 00"
+				maxLength={PHONE_MAX_LENGTH}
+				editable={!isSubmitting}
 				keyboardType="phone-pad"
 				autoComplete="tel"
 				textContentType="telephoneNumber"
@@ -234,6 +268,8 @@ const SignUp = () => {
 				secure
 				autoCapitalize="none"
 				autoComplete="new-password"
+				maxLength={PASSWORD_MAX_LENGTH}
+				editable={!isSubmitting}
 				textContentType="newPassword"
 				returnKeyType="next"
 				submitBehavior="submit"
@@ -251,12 +287,14 @@ const SignUp = () => {
 				secure
 				autoCapitalize="none"
 				autoComplete="new-password"
+				maxLength={PASSWORD_MAX_LENGTH}
+				editable={!isSubmitting}
 				textContentType="newPassword"
 				returnKeyType="go"
 				onSubmitEditing={handleSignUp}
 			/>
 
-			<AuthSubmit label="Créer mon compte" onPress={handleSignUp} />
+			<AuthSubmit label="Créer mon compte" onPress={handleSignUp} busy={isSubmitting} />
 		</AuthShell>
 	);
 };

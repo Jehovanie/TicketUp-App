@@ -65,9 +65,12 @@ Screens `useContext` these and throw if the value is missing. Detail screens byp
 
 `SessionContext` is the single source of truth for logged-in / logged-out — never add a parallel guard. `signIn()` calls `POST /api/auth/login` (Symfony's `json_login` firewall, so the response skips the house envelope and a 401 comes back in Lexik's `{ code, message }` shape), stores the JWT via `setAuthToken()`, then fetches `GET /api/user/me` — which also answers **flat**, outside the envelope.
 
-Two gaps to know about:
-- **The token lives in memory only.** No `expo-secure-store` / `async-storage` is installed, so the session dies with the app. `refresh_token` is returned by the API but unused. Hook persistence into `SessionProvider`.
-- **There is no account-creation endpoint.** `signup.tsx` validates locally and stops at a `TODO` in `handleSignUp`.
+`signUp()` posts to `POST /api/auth/register`, which **creates the account and returns the tokens in one call** — no follow-up `login`. The `user` it returns is partial (no `roles`, no dates), so the context re-reads `getMe()` and the app only ever handles one shape of `IUser`.
+
+Three gaps to know about:
+- **The token lives in memory only.** No `expo-secure-store` / `async-storage` is installed, so the session dies with the app. Hook persistence into `SessionProvider`.
+- **The access token expires after 15 minutes** (`exp = iat + 900`). `refresh_token` is stored in the context but `POST /api/auth/refresh` is never called. Harmless today — `getMe()` is the only authenticated request — but any authenticated feature added later needs the refresh wired first.
+- **The API answers 500 for business errors on register.** `RegisterController` catches nothing: a duplicate e-mail (Doctrine unique violation) and an invalid `RegisterDTO` both surface as 500 with the cause in `detail`. `registerErrorMessage()` in `SessionContext` reads that string to tell the cases apart, and falls back to a generic message in prod where Symfony hides the detail. Delete those heuristics the day the back returns 409 / 422.
 
 Browsing stays public. The wall sits on the *action*, not on navigation: `useRequireAuth()(action)` runs the action when logged in, otherwise pushes `signin` with the current path in `redirect`, which the screen `replace`s back to on success.
 

@@ -70,7 +70,10 @@ const SignIn = () => {
 
 			<View className="mt-5 flex-row items-center justify-center">
 				<Text className="font-poppins text-sm text-ink-500">Pas encore de compte ? </Text>
-				<Link href="/(root)/(auth)/signup" className="font-poppins-bold text-sm text-primary">
+				<Link
+					href={{ pathname: "/(root)/(auth)/signup", params: redirect ? { redirect } : {} }}
+					className="font-poppins-bold text-sm text-primary"
+				>
 					S’inscrire
 				</Link>
 			</View>

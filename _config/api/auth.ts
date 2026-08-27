@@ -29,6 +29,41 @@ export async function login(email: string, password: string): Promise<ILoginResp
 	return response.data;
 }
 
+export interface IRegisterInput {
+	email: string;
+	password: string;
+	firstname: string;
+	lastname: string;
+	/** Facultatifs côté API (`RegisterDTO`) : `phone` ≤ 30, `language` ≤ 10. */
+	phone?: string | null;
+	language?: string | null;
+}
+
+export interface IRegisterResponse {
+	token: string;
+	refresh_token: string;
+	/** Profil **partiel** : ni `roles`, ni `createdAt` — repasser par `getMe()`. */
+	user: Pick<IUser, "id" | "email" | "firstname" | "lastname" | "phone" | "language">;
+}
+
+/**
+ * `POST /api/auth/register` — crée le compte **et** délivre les jetons : pas
+ * besoin d'enchaîner sur `login`.
+ *
+ * Contraintes du `RegisterDTO` : `email` valide, `password` de 4 à 72
+ * caractères (borne haute imposée par bcrypt), `firstname` / `lastname` non
+ * vides et ≤ 50.
+ */
+export async function register(input: IRegisterInput): Promise<IRegisterResponse> {
+	const response = await client.post<IRegisterResponse>("/api/auth/register", input, {
+		// La route est publique ; un jeton périmé encore en mémoire n'a rien à
+		// y faire.
+		skipAuth: true,
+	});
+
+	return response.data;
+}
+
 /** `GET /api/user/me` — objet à plat, hors enveloppe. Requiert le jeton. */
 export async function getMe(): Promise<IUser> {
 	const response = await client.get<IUser>("/api/user/me");
