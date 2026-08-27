@@ -1,5 +1,5 @@
 import { Card, CompactCard } from "@/_shard/components/Cards";
-import Filters from "@/_shard/components/Filters";
+import Filters, { ALL_CATEGORIES } from "@/_shard/components/Filters";
 import NoResults from "@/_shard/components/NoResult";
 import icons from "@/_shard/constants/icons";
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Image, TextInput, ScrollView } from "react-native";
@@ -19,13 +19,13 @@ const Explore = () => {
 	if (!eventContext) throw new Error("Must be used inside EventProvider");
 	if (!categoriesContext) throw new Error("Must be used inside CategoryContext");
 	
-	const { events, isLoading, errors } = eventContext;
+	const { events, isLoading, isLoadingMore, errors, hasMore, loadMore } = eventContext;
 	const { categories, isLoading: isLoadingCategories } = categoriesContext;
 
 	const [filteredEvents, setFilteredEvents] = useState<any>([]);
 	const [search, setSearch] = useState("");
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-	const [selectedCategory, setSelectedCategory] = useState("All");
+	const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
 
 	const handleCardPress = (eventId: number) => {
 		router.push(`/(root)/event/${eventId}`);
@@ -43,7 +43,7 @@ const Explore = () => {
 		}
 		
 		// Filter by category
-		if (selectedCategory && selectedCategory !== "All") {
+		if (selectedCategory && selectedCategory !== ALL_CATEGORIES) {
 			result = result.filter((event: any) => 
 				event.category?.name === selectedCategory
 			);
@@ -75,6 +75,15 @@ const Explore = () => {
 				}
 				keyExtractor={(item) => item.id.toString()}
 				numColumns={viewMode === "grid" ? 2 : 1}
+				onEndReached={() => hasMore && loadMore()}
+				onEndReachedThreshold={0.5}
+				ListFooterComponent={
+					isLoadingMore ? (
+						<View className="py-6">
+							<ActivityIndicator size="small" color="#5C27C0" />
+						</View>
+					) : null
+				}
 				key={viewMode}
 				contentContainerClassName="pb-32"
 				columnWrapperClassName={viewMode === "grid" ? "flex gap-4 px-4" : undefined}
@@ -83,7 +92,7 @@ const Explore = () => {
 					isLoading ? (
 						<View className="flex-1 items-center justify-center py-20">
 							<ActivityIndicator size="large" color="#5C27C0" />
-							<Text className="text-gray-500 font-poppins mt-3">Loading events...</Text>
+							<Text className="text-gray-500 font-poppins mt-3">Chargement des événements...</Text>
 						</View>
 					) : (
 						<NoResults />
@@ -102,8 +111,8 @@ const Explore = () => {
 								{/* Title */}
 								<View className="flex-row items-center justify-between mb-5">
 									<View>
-										<Text className="text-2xl font-poppins-bold text-white">Explore</Text>
-										<Text className="text-sm font-poppins text-white/70">Find your next experience</Text>
+										<Text className="text-2xl font-poppins-bold text-white">Explorer</Text>
+										<Text className="text-sm font-poppins text-white/70">Trouvez votre prochaine expérience</Text>
 									</View>
 									<TouchableOpacity className="bg-white/20 p-3 rounded-full">
 										<Image source={icons.filter} tintColor="#FFFFFF" className="size-5" />
@@ -116,7 +125,7 @@ const Explore = () => {
 									<TextInput
 										value={search}
 										onChangeText={setSearch}
-										placeholder="Search events, venues, artists..."
+										placeholder="Rechercher un événement, un lieu, un artiste..."
 										placeholderTextColor="#9CA3AF"
 										className="flex-1 ml-3 text-gray-800 font-poppins"
 									/>
@@ -140,7 +149,7 @@ const Explore = () => {
 									</View>
 									<View>
 										<Text className="text-2xl font-poppins-bold text-gray-800">{events.length}</Text>
-										<Text className="text-xs font-poppins text-gray-500">Events</Text>
+										<Text className="text-xs font-poppins text-gray-500">Événements</Text>
 									</View>
 								</View>
 							</View>
@@ -151,7 +160,7 @@ const Explore = () => {
 									</View>
 									<View>
 										<Text className="text-2xl font-poppins-bold text-gray-800">{categories.length}</Text>
-										<Text className="text-xs font-poppins text-gray-500">Categories</Text>
+										<Text className="text-xs font-poppins text-gray-500">Catégories</Text>
 									</View>
 								</View>
 							</View>
@@ -159,9 +168,9 @@ const Explore = () => {
 
 						{/* Categories */}
 						<View className="px-5 mb-4">
-							<Text className="text-lg font-poppins-bold text-gray-800 mb-3">Categories</Text>
+							<Text className="text-lg font-poppins-bold text-gray-800 mb-3">Catégories</Text>
 							<ScrollView horizontal showsHorizontalScrollIndicator={false}>
-								{[{ id: 0, name: "All" }, ...categories].map((item: any, index) => (
+								{[{ id: 0, name: ALL_CATEGORIES }, ...categories].map((item: any, index) => (
 									<TouchableOpacity
 										key={index}
 										onPress={() => handleCategoryPress(item.name)}
@@ -188,10 +197,10 @@ const Explore = () => {
 						<View className="px-5 flex-row items-center justify-between mb-2">
 							<View>
 								<Text className="text-lg font-poppins-bold text-gray-800">
-									{search ? "Search Results" : "All Events"}
+									{search ? "Résultats de recherche" : "Tous les événements"}
 								</Text>
 								<Text className="text-sm font-poppins text-gray-500">
-									{filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"} found
+									{filteredEvents.length} {filteredEvents.length === 1 ? "événement trouvé" : "événements trouvés"}
 								</Text>
 							</View>
 							

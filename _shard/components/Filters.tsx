@@ -4,6 +4,9 @@ import { Text, ScrollView, TouchableOpacity } from "react-native";
 
 import { ICategory } from "@/_core/model/ICategory";
 
+/** Libellé de la puce « toutes catégories » (pas une catégorie de l'API). */
+export const ALL_CATEGORIES = "Toutes";
+
 interface Props {
 	categories: Partial<ICategory>[];
 	onPress?: () => void;
@@ -11,7 +14,7 @@ interface Props {
 
 const Filters = ({ categories }: Props) => {
 	const params = useLocalSearchParams<{ filter?: string }>();
-	const [selectedCategory, setSelectedCategory] = useState(params.filter || "All");
+	const [selectedCategory, setSelectedCategory] = useState(params.filter || ALL_CATEGORIES);
 
 	const handleCategoryPress = (category: string) => {
 		if (selectedCategory === category) {
@@ -26,7 +29,7 @@ const Filters = ({ categories }: Props) => {
 
 	return (
 		<ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 mb-2">
-			{[{ id: 0, name: "All", color: "green" }, ...categories].map((item, index) => (
+			{[{ id: 0, name: ALL_CATEGORIES, color: "green" }, ...categories].map((item, index) => (
 				<TouchableOpacity
 					onPress={() => handleCategoryPress(item.name ?? "")}
 					key={index}

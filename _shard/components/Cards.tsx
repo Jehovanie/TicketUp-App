@@ -1,24 +1,32 @@
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
-import { IEvent } from "@/_core/model/IEvent";
+import { IEventListItem } from "@/_core/model/IEvent";
 import { ITicketType } from "@/_core/model/ITicketType";
+import { LOCALE, formatPrice, isFree } from "@/_shard/constants/format";
+import FreeBadge from "@/_shard/components/FreeBadge";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface Props {
-	event: IEvent;
+	/** Forme `events:lists` : pas de `description`, pas d'`organizer`. */
+	event: IEventListItem;
 	onPress?: () => void;
 }
 
 export const FeaturedCard = ({ event, onPress }: Props) => {
 	const { ticket_type } = event;
 
-	const min_price_ticket = ticket_type.reduce((a: ITicketType, b: ITicketType) => (a.prix > b.prix ? a : b));
+	// `ticket_type` peut arriver vide : `reduce` sans valeur initiale lèverait une erreur.
+	// `null` = aucun billet défini, à distinguer d'un billet à 0 (gratuit).
+	const min_price_ticket =
+		ticket_type.length > 0
+			? ticket_type.reduce((a: ITicketType, b: ITicketType) => (a.prix < b.prix ? a : b))
+			: null;
 
 	// Format date
 	const eventDate = new Date(event.startedAt);
 	const day = eventDate.getDate();
-	const month = eventDate.toLocaleString("en-US", { month: "short" }).toUpperCase();
+	const month = eventDate.toLocaleString(LOCALE, { month: "short" }).toUpperCase();
 
 	return (
 		<TouchableOpacity 
@@ -65,12 +73,16 @@ export const FeaturedCard = ({ event, onPress }: Props) => {
 				</View>
 
 				<View className="flex-row items-center justify-between">
-					<View className="flex-row items-center">
-						<Text className="text-white/70 text-sm font-poppins">From </Text>
-						<Text className="text-2xl font-poppins-bold text-white">${min_price_ticket.prix}</Text>
-					</View>
+					{min_price_ticket && (isFree(min_price_ticket.prix) ? (
+						<FreeBadge variant="light" size="lg" />
+					) : (
+						<View className="flex-row items-center">
+							<Text className="text-white/70 text-sm font-poppins">Dès </Text>
+							<Text className="text-2xl font-poppins-bold text-white">{formatPrice(min_price_ticket.prix)}</Text>
+						</View>
+					))}
 					<View className="bg-white px-4 py-2 rounded-full">
-						<Text className="text-primary-300 font-poppins-bold text-sm">Get Ticket</Text>
+						<Text className="text-primary-300 font-poppins-bold text-sm">Réserver</Text>
 					</View>
 				</View>
 			</View>
@@ -82,13 +94,13 @@ export const Card = ({ event, onPress }: Props) => {
 	const { ticket_type } = event;
 	const min_price_ticket = ticket_type.length > 0 
 		? ticket_type.reduce((a: ITicketType, b: ITicketType) => (a.prix < b.prix ? a : b))
-		: { prix: 0 };
+		: null;
 
 	// Format date
 	const eventDate = new Date(event.startedAt);
 	const day = eventDate.getDate();
-	const month = eventDate.toLocaleString("en-US", { month: "short" });
-	const time = eventDate.toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+	const month = eventDate.toLocaleString(LOCALE, { month: "short" });
+	const time = eventDate.toLocaleString(LOCALE, { hour: "2-digit", minute: "2-digit" });
 
 	return (
 		<TouchableOpacity 
@@ -130,7 +142,11 @@ export const Card = ({ event, onPress }: Props) => {
 						<Image source={icons.calendar} className="size-3 mr-1" tintColor="#5C27C0" />
 						<Text className="text-xs font-poppins-medium text-primary-300">{time}</Text>
 					</View>
-					<Text className="text-sm font-poppins-bold text-primary-300">${min_price_ticket.prix}</Text>
+					{min_price_ticket && (isFree(min_price_ticket.prix) ? (
+						<FreeBadge variant="outline" size="sm" />
+					) : (
+						<Text className="text-sm font-poppins-bold text-primary-300">{formatPrice(min_price_ticket.prix)}</Text>
+					))}
 				</View>
 			</View>
 		</TouchableOpacity>
@@ -142,10 +158,10 @@ export const CompactCard = ({ event, onPress }: Props) => {
 	const { ticket_type } = event;
 	const min_price_ticket = ticket_type.length > 0 
 		? ticket_type.reduce((a: ITicketType, b: ITicketType) => (a.prix < b.prix ? a : b))
-		: { prix: 0 };
+		: null;
 
 	const eventDate = new Date(event.startedAt);
-	const formattedDate = eventDate.toLocaleString("en-US", { 
+	const formattedDate = eventDate.toLocaleString(LOCALE, { 
 		month: "short", 
 		day: "numeric",
 		hour: "numeric",
@@ -178,7 +194,11 @@ export const CompactCard = ({ event, onPress }: Props) => {
 							{event.location.name}
 						</Text>
 					</View>
-					<Text className="text-sm font-poppins-bold text-primary-300">${min_price_ticket.prix}</Text>
+					{min_price_ticket && (isFree(min_price_ticket.prix) ? (
+						<FreeBadge variant="outline" size="sm" />
+					) : (
+						<Text className="text-sm font-poppins-bold text-primary-300">{formatPrice(min_price_ticket.prix)}</Text>
+					))}
 				</View>
 			</View>
 		</TouchableOpacity>

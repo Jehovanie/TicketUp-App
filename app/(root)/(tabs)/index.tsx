@@ -44,17 +44,24 @@ const Index = () => {
 	if (!eventContext) throw new Error("Must be used inside EventProvider");
 	if (!categoriesContext) throw new Error("Must be used inside CategoryContext");
 
-	const { events, isLoading: isLoadingEvent, errors: errorsEventContext } = eventContext;
+	const {
+		events,
+		isLoading: isLoadingEvent,
+		errors: errorsEventContext,
+		hasMore,
+		loadMore,
+	} = eventContext;
 	const { categories, isLoading: isLoadingCategories, errors: errorsCategoriesContext } = categoriesContext;
 
 	useEffect(() => {
+		// `events` vient du contexte : ne pas le muter avec `reverse()`.
 		setLatestProperties(events);
-		setProperties(events.reverse());
-	}, [isLoadingEvent]);
+		setProperties([...events].reverse());
+	}, [events]);
 
 	useEffect(() => {
 		setAllsProperties(categories);
-	}, [isLoadingCategories]);
+	}, [categories]);
 
 	return (
 		<SafeAreaView className="bg-gray-50 flex-1">
@@ -63,11 +70,13 @@ const Index = () => {
 				renderItem={({ item }) => <Card event={item} onPress={() => handleCardPress(item.id)} />}
 				keyExtractor={(item) => item.id.toString()}
 				numColumns={2}
+				onEndReached={() => hasMore && loadMore()}
+				onEndReachedThreshold={0.5}
 				contentContainerClassName="pb-32"
 				columnWrapperClassName="flex gap-4 px-4"
 				showsVerticalScrollIndicator={false}
 				ListEmptyComponent={
-					loading ? <ActivityIndicator size="large" className="text-primary-300 mt-5" /> : <NoResults />
+					isLoadingEvent ? <ActivityIndicator size="large" className="text-primary-300 mt-5" /> : <NoResults />
 				}
 				ListHeaderComponent={
 					<View>
@@ -82,8 +91,8 @@ const Index = () => {
 							<View className="px-5 pt-2">
 								<View className="flex-row items-center justify-between mb-6">
 									<View>
-										<Text className="text-white/70 text-sm font-poppins">Welcome back 👋</Text>
-										<Text className="text-2xl font-poppins-bold text-white">Discover Events</Text>
+										<Text className="text-white/70 text-sm font-poppins">Bon retour 👋</Text>
+										<Text className="text-2xl font-poppins-bold text-white">Découvrez les événements</Text>
 									</View>
 									<View className="flex-row items-center gap-3">
 										<TouchableOpacity className="bg-white/20 p-3 rounded-full">
@@ -99,7 +108,7 @@ const Index = () => {
 								<View className="bg-white/20 rounded-2xl flex-row items-center px-4 py-3 mb-6">
 									<Image source={icons.search} tintColor="#FFFFFF" className="size-5" />
 									<TextInput
-										placeholder="Search events, artists..."
+										placeholder="Rechercher un événement, un artiste..."
 										placeholderTextColor="rgba(255,255,255,0.6)"
 										className="flex-1 ml-3 text-white font-poppins"
 										value={search}
@@ -123,7 +132,7 @@ const Index = () => {
 									{/* Live Badge */}
 									<View className="absolute top-4 left-4 bg-red-500 px-3 py-1 rounded-full flex-row items-center">
 										<View className="w-2 h-2 bg-white rounded-full mr-2" />
-										<Text className="text-white text-xs font-poppins-bold">FEATURED</Text>
+										<Text className="text-white text-xs font-poppins-bold">À LA UNE</Text>
 									</View>
 
 									<View className="absolute bottom-4 left-4 right-4">
@@ -139,7 +148,7 @@ const Index = () => {
 											</View>
 											<View className="bg-white px-4 py-2 rounded-full">
 												<Text className="font-poppins-bold text-primary-300 text-sm">
-													From $145
+													Dès 145 000 Ar
 												</Text>
 											</View>
 										</View>
@@ -152,11 +161,11 @@ const Index = () => {
 						<View className="px-5 mt-6 mb-5">
 							<View className="flex-row items-center justify-between mb-4">
 								<View>
-									<Text className="text-xl font-poppins-bold text-gray-800">This Week</Text>
-									<Text className="text-sm font-poppins text-gray-500">Don't miss out!</Text>
+									<Text className="text-xl font-poppins-bold text-gray-800">Cette semaine</Text>
+									<Text className="text-sm font-poppins text-gray-500">À ne pas manquer !</Text>
 								</View>
 								<TouchableOpacity className="flex-row items-center">
-									<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">See all</Text>
+									<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">Tout voir</Text>
 									<Image source={icons.rightArrow} className="size-4" tintColor="#5C27C0" />
 								</TouchableOpacity>
 							</View>
@@ -184,23 +193,23 @@ const Index = () => {
 						<View className="px-5">
 							<View className="flex-row items-center justify-between mb-4">
 								<View>
-									<Text className="text-xl font-poppins-bold text-gray-800">Explore</Text>
-									<Text className="text-sm font-poppins text-gray-500">Browse by category</Text>
+									<Text className="text-xl font-poppins-bold text-gray-800">Explorer</Text>
+									<Text className="text-sm font-poppins text-gray-500">Parcourir par catégorie</Text>
 								</View>
 								<TouchableOpacity className="flex-row items-center">
-									<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">See all</Text>
+									<Text className="text-sm font-poppins-semibold text-primary-300 mr-1">Tout voir</Text>
 									<Image source={icons.rightArrow} className="size-4" tintColor="#5C27C0" />
 								</TouchableOpacity>
 							</View>
-							<Filters categories={allCategories.reverse()} />
+							<Filters categories={[...allCategories].reverse()} />
 						</View>
 
 						{/* All Events Header */}
 						<View className="px-5 mt-6 mb-2">
 							<View className="flex-row items-center justify-between">
 								<View>
-									<Text className="text-xl font-poppins-bold text-gray-800">Upcoming Events</Text>
-									<Text className="text-sm font-poppins text-gray-500">{properties.length} events near you</Text>
+									<Text className="text-xl font-poppins-bold text-gray-800">Événements à venir</Text>
+									<Text className="text-sm font-poppins text-gray-500">{properties.length} événements près de chez vous</Text>
 								</View>
 							</View>
 						</View>

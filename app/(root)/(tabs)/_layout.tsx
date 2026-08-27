@@ -47,17 +47,17 @@ const AppHomeLayout = () => {
 			<Tabs.Screen
 				name="index"
 				options={{
-					title: "home",
+					title: "Accueil",
 					headerShown: false,
-					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.home} title={"Home"} />,
+					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.home} title={"Accueil"} />,
 				}}
 			/>
 			<Tabs.Screen
 				name="explore"
 				options={{
-					title: "search",
+					title: "Explorer",
 					headerShown: false,
-					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.search} title="Explore" />,
+					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.search} title="Explorer" />,
 				}}
 			/>
 			<Tabs.Screen
@@ -65,7 +65,7 @@ const AppHomeLayout = () => {
 				options={{
 					title: "Profil",
 					headerShown: false,
-					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.person} title="Profile" />,
+					tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={icons.person} title="Profil" />,
 				}}
 			/>
 		</Tabs>

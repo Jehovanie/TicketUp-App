@@ -1,48 +1,52 @@
-import React, { createContext, useEffect, useState, ReactNode } from "react";
-import { client } from "../../_config/api/client";
+import React, { createContext, useCallback, useEffect, useMemo, useState, ReactNode } from "react";
+import { getAllCategories } from "@/_config/api/categories";
 import { ICategory } from "@/_core/model/ICategory";
 
-type DataEventType = {
-	categories: Partial<ICategory>[];
+type CategoryContextType = {
+	categories: ICategory[];
 	isLoading: boolean;
-	errors: any[];
+	errors: unknown[];
+	itemsTotal: number;
+	refresh: () => void;
 };
-// Define context type
-export const CategoryContext: React.Context<DataEventType> = createContext<DataEventType>({
+
+export const CategoryContext: React.Context<CategoryContextType> = createContext<CategoryContextType>({
 	categories: [],
 	isLoading: true,
 	errors: [],
+	itemsTotal: 0,
+	refresh: () => {},
 });
 
 export const CategoryProvider = ({ children }: { children: ReactNode }) => {
-	const [dataCatagory, setDataCategory] = useState<DataEventType>({
-		categories: [],
-		isLoading: true,
-		errors: [],
-	});
+	const [categories, setCategories] = useState<ICategory[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [errors, setErrors] = useState<unknown[]>([]);
+	const [itemsTotal, setItemsTotal] = useState(0);
 
-	useEffect(() => {
-		const fetchCategories = async () => {
-			try {
-				const response = await client.get<Partial<ICategory>[]>("/api/categories");
-				const categories = response.data;
-				setDataCategory({
-					categories: categories,
-					isLoading: false,
-					errors: [],
-				});
-			} catch (err) {
-				setDataCategory({
-					categories: [],
-					isLoading: false,
-					errors: [err],
-				});
-				console.error(err);
-			}
-		};
-
-		fetchCategories();
+	const load = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			const { items, itemsTotal: total } = await getAllCategories();
+			setCategories(items);
+			setItemsTotal(total);
+			setErrors([]);
+		} catch (err) {
+			setErrors([err]);
+			console.error("[CategoryContext] GET /api/categories", err);
+		} finally {
+			setIsLoading(false);
+		}
 	}, []);
 
-	return <CategoryContext.Provider value={dataCatagory}>{children}</CategoryContext.Provider>;
+	useEffect(() => {
+		load();
+	}, [load]);
+
+	const value = useMemo<CategoryContextType>(
+		() => ({ categories, isLoading, errors, itemsTotal, refresh: load }),
+		[categories, isLoading, errors, itemsTotal, load]
+	);
+
+	return <CategoryContext.Provider value={value}>{children}</CategoryContext.Provider>;
 };

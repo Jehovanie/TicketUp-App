@@ -5,24 +5,28 @@ import { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
+import { LOCALE, CURRENCY_SYMBOL, formatPrice, isFree } from "@/_shard/constants/format";
+import FreeBadge from "@/_shard/components/FreeBadge";
 import { IEvent } from "@/_core/model/IEvent";
-import { client } from "@/_config/api/client";
+import { getEventById } from "@/_config/api/events";
 
 const EventDetails = () => {
 	const { id } = useLocalSearchParams();
 	const router = useRouter();
 	const [event, setEvent] = useState<IEvent | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
 
 	useEffect(() => {
 		const fetchEventDetails = async () => {
 			try {
 				setLoading(true);
-				const response = await client.get<IEvent>(`/api/events/${id}`);
-				setEvent(response.data);
-			} catch (error) {
-				console.error("Error fetching event details:", error);
+				setError(null);
+				setEvent(await getEventById(String(id)));
+			} catch (err: any) {
+				setError(err?.message ?? "Impossible de charger cet événement");
+				console.error("[EventDetails] GET /api/events/:id", err);
 			} finally {
 				setLoading(false);
 			}
@@ -49,12 +53,12 @@ const EventDetails = () => {
 			month: "short",
 			year: "numeric",
 		};
-		return date.toLocaleDateString("en-US", options);
+		return date.toLocaleDateString(LOCALE, options);
 	};
 
 	const formatTime = (dateString: string) => {
 		const date = new Date(dateString);
-		return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+		return date.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" });
 	};
 
 	const handleBookTicket = () => {
@@ -74,14 +78,21 @@ const EventDetails = () => {
 
 	if (!event) {
 		return (
-			<SafeAreaView className="flex-1 bg-white items-center justify-center">
-				<Text className="font-poppins-semibold text-lg text-gray-600">Event not found</Text>
+			<SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+				<Text className="font-poppins-semibold text-lg text-gray-600 text-center">
+					{error ?? "Événement introuvable"}
+				</Text>
 			</SafeAreaView>
 		);
 	}
 
-	const minPrice = Math.min(...event.ticket_type.map((t) => t.prix));
-	const maxPrice = Math.max(...event.ticket_type.map((t) => t.prix));
+	// `ticket_type` peut être un tableau vide : Math.min(...[]) vaudrait Infinity.
+	// Aucun billet défini n'est pas la même chose qu'un billet à 0 (gratuit).
+	const prices = event.ticket_type.map((t) => t.prix);
+	const hasTickets = prices.length > 0;
+	const selectedTicketPrice = event.ticket_type.find((t) => t.id === selectedTicket)?.prix ?? 0;
+	const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+	const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
 	return (
 		<SafeAreaView className="flex-1 bg-white">
@@ -119,7 +130,7 @@ const EventDetails = () => {
 							<Text className="font-poppins-bold text-2xl text-black-300 mb-2">{event.title}</Text>
 							<View className="flex-row items-center">
 								<View className={`w-2 h-2 rounded-full mr-2 ${event.status ? "bg-green-500" : "bg-red-500"}`} />
-								<Text className={`font-poppins-medium text-sm ${event.status ? "text-green-600" : "text-red-600"}`}>{event.status ? "Available" : "Sold Out"}</Text>
+								<Text className={`font-poppins-medium text-sm ${event.status ? "text-green-600" : "text-red-600"}`}>{event.status ? "Disponible" : "Complet"}</Text>
 							</View>
 						</View>
 					</View>
@@ -131,7 +142,7 @@ const EventDetails = () => {
 								<Image source={icons.calendar} className="w-5 h-5" tintColor="#0061ff" />
 							</View>
 							<View className="flex-1">
-								<Text className="font-poppins-medium text-xs text-gray-500 mb-1">Event Date</Text>
+								<Text className="font-poppins-medium text-xs text-gray-500 mb-1">Date de l’événement</Text>
 								<Text className="font-poppins-semibold text-base text-black-300">{formatDate(event.startedAt)}</Text>
 							</View>
 						</View>
@@ -140,7 +151,7 @@ const EventDetails = () => {
 							<Image source={icons.calendar} className="w-5 h-5" tintColor="#0061ff" />
 							</View>
 							<View className="flex-1">
-								<Text className="font-poppins-medium text-xs text-gray-500 mb-1">Schedule</Text>
+								<Text className="font-poppins-medium text-xs text-gray-500 mb-1">Horaires</Text>
 								<Text className="font-poppins-semibold text-base text-black-300">
 									{formatTime(event.startedAt)} - {formatTime(event.endAt)}
 								</Text>
@@ -155,42 +166,44 @@ const EventDetails = () => {
 								<Image source={icons.location} className="w-5 h-5" tintColor="#8b5cf6" />
 							</View>
 							<View className="flex-1">
-								<Text className="font-poppins-medium text-xs text-gray-500 mb-1">Location</Text>
-								<Text className="font-poppins-semibold text-base text-black-300">{event.location.name || "To be determined"}</Text>
-								{event.location.size && <Text className="font-poppins-regular text-sm text-gray-600 mt-1">Capacity: {event.location.size} people</Text>}
+								<Text className="font-poppins-medium text-xs text-gray-500 mb-1">Lieu</Text>
+								<Text className="font-poppins-semibold text-base text-black-300">{event.location.name || "À définir"}</Text>
+								{event.location.size && <Text className="font-poppins-regular text-sm text-gray-600 mt-1">Capacité : {event.location.size} personnes</Text>}
 							</View>
 						</View>
 					</View>
 
-					{/* Organizer Card */}
-					<View className="bg-orange-50 rounded-2xl p-4 mb-5">
-						<Text className="font-poppins-semibold text-base text-black-300 mb-3">Organizer</Text>
-						<View className="flex-row items-center mb-2">
-							<View className="bg-orange-100 rounded-full p-2 mr-3">
-								<Image source={icons.person} className="w-5 h-5" tintColor="#f97316" />
+					{/* Organizer Card — relation nullable côté API */}
+					{event.organizer && (
+						<View className="bg-orange-50 rounded-2xl p-4 mb-5">
+							<Text className="font-poppins-semibold text-base text-black-300 mb-3">Organisateur</Text>
+							<View className="flex-row items-center mb-2">
+								<View className="bg-orange-100 rounded-full p-2 mr-3">
+									<Image source={icons.person} className="w-5 h-5" tintColor="#f97316" />
+								</View>
+								<Text className="font-poppins-medium text-base text-black-300 flex-1">{event.organizer.name}</Text>
 							</View>
-							<Text className="font-poppins-medium text-base text-black-300 flex-1">{event.organizer.name}</Text>
+							{event.organizer.email && (
+								<View className="flex-row items-center mb-2 ml-11">
+									<Text className="font-poppins-regular text-sm text-gray-600">{event.organizer.email}</Text>
+								</View>
+							)}
+							{event.organizer.phone && (
+								<View className="flex-row items-center mb-2 ml-11">
+									<Text className="font-poppins-regular text-sm text-gray-600">{event.organizer.phone}</Text>
+								</View>
+							)}
+							{event.organizer.website && (
+								<View className="flex-row items-center ml-11">
+									<Text className="font-poppins-regular text-sm text-primary-100">{event.organizer.website}</Text>
+								</View>
+							)}
 						</View>
-						{event.organizer.email && (
-							<View className="flex-row items-center mb-2 ml-11">
-								<Text className="font-poppins-regular text-sm text-gray-600">{event.organizer.email}</Text>
-							</View>
-						)}
-						{event.organizer.phone && (
-							<View className="flex-row items-center mb-2 ml-11">
-								<Text className="font-poppins-regular text-sm text-gray-600">{event.organizer.phone}</Text>
-							</View>
-						)}
-						{event.organizer.website && (
-							<View className="flex-row items-center ml-11">
-								<Text className="font-poppins-regular text-sm text-primary-100">{event.organizer.website}</Text>
-							</View>
-						)}
-					</View>
+					)}
 
 					{/* Description */}
 					<View className="mb-5">
-						<Text className="font-poppins-semibold text-lg text-black-300 mb-3">About the event</Text>
+						<Text className="font-poppins-semibold text-lg text-black-300 mb-3">À propos de l’événement</Text>
 						<Text className="font-poppins-regular text-sm text-gray-600 leading-6">{event.description}</Text>
 					</View>
 
@@ -204,16 +217,22 @@ const EventDetails = () => {
 										<Image source={icons.wallet} className="size-6" tintColor="#5C27C0" />
 									</View>
 									<View>
-										<Text className="font-poppins-bold text-xl text-gray-800">Available Tickets</Text>
-										<Text className="font-poppins text-xs text-gray-500">Select your ticket</Text>
+										<Text className="font-poppins-bold text-xl text-gray-800">Billets disponibles</Text>
+										<Text className="font-poppins text-xs text-gray-500">Choisissez votre billet</Text>
 									</View>
 								</View>
 							</View>
 							<View className="flex-row items-center justify-between bg-purple-50 px-4 py-3 rounded-2xl">
-								<Text className="font-poppins-semibold text-sm text-gray-600">Price Range</Text>
-								<Text className="font-poppins-bold text-lg text-primary-300">
-									{minPrice === maxPrice ? `${minPrice} €` : `${minPrice} - ${maxPrice} €`}
-								</Text>
+								<Text className="font-poppins-semibold text-sm text-gray-600">Fourchette de prix</Text>
+								{!hasTickets ? (
+									<Text className="font-poppins-semibold text-sm text-gray-400">Non défini</Text>
+								) : isFree(maxPrice) ? (
+									<FreeBadge variant="solid" size="md" />
+								) : (
+									<Text className="font-poppins-bold text-lg text-primary-300">
+										{minPrice === maxPrice ? formatPrice(minPrice) : `${minPrice.toLocaleString(LOCALE)} - ${formatPrice(maxPrice)}`}
+									</Text>
+								)}
 							</View>
 						</View>
 
@@ -249,7 +268,7 @@ const EventDetails = () => {
 													<View className="flex-row items-center mb-3">
 														<View className="bg-white/30 backdrop-blur px-3 py-1.5 rounded-full mr-2">
 															<Text className="font-poppins-bold text-sm text-white">
-																Ticket #{index + 1}
+																Billet n°{index + 1}
 															</Text>
 														</View>
 													</View>
@@ -261,7 +280,7 @@ const EventDetails = () => {
 															<Image source={icons.calendar} className="size-4" tintColor="#FFF" />
 														</View>
 														<Text className="font-poppins-semibold text-sm text-white/90">
-															{ticket.quantite_max} seats available
+															{ticket.quantite_max} places disponibles
 														</Text>
 													</View>
 												</View>
@@ -272,7 +291,7 @@ const EventDetails = () => {
 														<Text className="text-3xl">✓</Text>
 													</View>
 													<View className="bg-white/30 px-3 py-1 rounded-full">
-														<Text className="font-poppins-bold text-xs text-white">Selected</Text>
+														<Text className="font-poppins-bold text-xs text-white">Sélectionné</Text>
 													</View>
 												</View>
 											</View>
@@ -280,13 +299,19 @@ const EventDetails = () => {
 											{/* Price Section */}
 											<View className="bg-white/20 backdrop-blur rounded-2xl p-4 flex-row items-center justify-between">
 												<View>
-													<Text className="font-poppins text-xs text-white/70 mb-1">Price per person</Text>
-													<Text className="font-poppins-semibold text-sm text-white/90">Tax included</Text>
+													<Text className="font-poppins text-xs text-white/70 mb-1">Prix par personne</Text>
+													{!isFree(ticket.prix) && (
+														<Text className="font-poppins-semibold text-sm text-white/90">Taxes incluses</Text>
+													)}
 												</View>
-												<View className="flex-row items-baseline">
-													<Text className="font-poppins-bold text-3xl text-white">{ticket.prix}</Text>
-													<Text className="font-poppins-bold text-xl text-white/90 ml-1">€</Text>
-												</View>
+												{isFree(ticket.prix) ? (
+													<FreeBadge variant="light" size="lg" />
+												) : (
+													<View className="flex-row items-baseline">
+														<Text className="font-poppins-bold text-3xl text-white">{ticket.prix.toLocaleString(LOCALE)}</Text>
+														<Text className="font-poppins-bold text-xl text-white/90 ml-1">{CURRENCY_SYMBOL}</Text>
+													</View>
+												)}
 											</View>
 										</LinearGradient>
 									) : (
@@ -306,7 +331,7 @@ const EventDetails = () => {
 																className="font-poppins-bold text-xs"
 																style={{ color: colors.from }}
 															>
-																Ticket #{index + 1}
+																Billet n°{index + 1}
 															</Text>
 														</View>
 														<View 
@@ -317,7 +342,7 @@ const EventDetails = () => {
 																className="font-poppins-semibold text-xs"
 																style={{ color: colors.from }}
 															>
-																Available
+																Disponible
 															</Text>
 														</View>
 													</View>
@@ -336,18 +361,24 @@ const EventDetails = () => {
 															/>
 														</View>
 														<Text className="font-poppins text-sm text-gray-600">
-															{ticket.quantite_max} seats remaining
+															{ticket.quantite_max} places restantes
 														</Text>
 													</View>
 												</View>
 												
 												{/* Price Display */}
 												<View className="items-end">
-													<View className="flex-row items-baseline mb-2">
-														<Text className="font-poppins-bold text-3xl text-gray-800">{ticket.prix}</Text>
-														<Text className="font-poppins-bold text-lg text-gray-600 ml-1">€</Text>
-													</View>
-													<Text className="font-poppins text-xs text-gray-500">per person</Text>
+													{isFree(ticket.prix) ? (
+														<View className="mb-2 items-end">
+															<FreeBadge variant="solid" size="md" />
+														</View>
+													) : (
+														<View className="flex-row items-baseline mb-2">
+															<Text className="font-poppins-bold text-3xl text-gray-800">{ticket.prix.toLocaleString(LOCALE)}</Text>
+															<Text className="font-poppins-bold text-lg text-gray-600 ml-1">{CURRENCY_SYMBOL}</Text>
+														</View>
+													)}
+													<Text className="font-poppins text-xs text-gray-500">par personne</Text>
 												</View>
 											</View>
 
@@ -357,7 +388,7 @@ const EventDetails = () => {
 												style={{ borderTopColor: colors.bg, borderTopWidth: 1 }}
 											>
 												<Text className="font-poppins-semibold text-sm text-gray-500 mr-2">
-													Tap to select
+													Appuyez pour sélectionner
 												</Text>
 												<Image source={icons.rightArrow} className="size-4" tintColor="#9CA3AF" />
 											</View>
@@ -374,10 +405,10 @@ const EventDetails = () => {
 							</View>
 							<View className="flex-1">
 								<Text className="font-poppins-bold text-sm text-gray-800 mb-1">
-									💡 Good to know
+									💡 Bon à savoir
 								</Text>
 								<Text className="font-poppins text-xs text-gray-600 leading-5">
-									Prices shown include all taxes. Your ticket will be sent by email after payment confirmation.
+									Les prix affichés incluent toutes les taxes. Votre billet vous sera envoyé par e-mail après confirmation du paiement.
 								</Text>
 							</View>
 						</View>
@@ -392,14 +423,20 @@ const EventDetails = () => {
 						{/* Price Summary */}
 						<View className="flex-row items-center justify-between mb-3 bg-purple-50 px-4 py-3 rounded-2xl">
 							<View>
-								<Text className="font-poppins text-xs text-gray-500 mb-1">Total Price</Text>
-								<Text className="font-poppins-bold text-lg text-gray-800">
-									{event.ticket_type.find(t => t.id === selectedTicket)?.prix} €
-								</Text>
+								<Text className="font-poppins text-xs text-gray-500 mb-1">Prix total</Text>
+								{isFree(selectedTicketPrice) ? (
+									<FreeBadge variant="solid" size="md" />
+								) : (
+									<Text className="font-poppins-bold text-lg text-gray-800">
+										{formatPrice(selectedTicketPrice)}
+									</Text>
+								)}
 							</View>
-							<View className="bg-purple-100 px-3 py-1.5 rounded-full">
-								<Text className="font-poppins-semibold text-xs text-primary-300">Tax included</Text>
-							</View>
+							{!isFree(selectedTicketPrice) && (
+								<View className="bg-purple-100 px-3 py-1.5 rounded-full">
+									<Text className="font-poppins-semibold text-xs text-primary-300">Taxes incluses</Text>
+								</View>
+							)}
 						</View>
 
 						{/* Book Button with Gradient */}
@@ -416,7 +453,7 @@ const EventDetails = () => {
 								style={{ elevation: 8 }}
 							>
 								<Image source={icons.wallet} className="size-6 mr-3" tintColor="#FFF" />
-								<Text className="font-poppins-bold text-white text-lg">Book Now</Text>
+								<Text className="font-poppins-bold text-white text-lg">Réserver</Text>
 								<Image source={icons.rightArrow} className="size-5 ml-3" tintColor="#FFF" />
 							</LinearGradient>
 						</TouchableOpacity>
@@ -428,7 +465,7 @@ const EventDetails = () => {
 					>
 						<Image source={icons.info} className="size-5 mr-2" tintColor="#9CA3AF" />
 						<Text className="font-poppins-semibold text-gray-500 text-base">
-							{selectedTicket === null ? "Select a ticket" : "Event sold out"}
+							{selectedTicket === null ? "Choisissez un billet" : "Événement complet"}
 						</Text>
 					</TouchableOpacity>
 				)}

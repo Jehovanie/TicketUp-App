@@ -61,16 +61,16 @@ const Profile = () => {
 		name: "Jehovanie RAMANDRIJOEL",
 		email: "jehovanieram@gmail.com",
 		phone: "+509 1234 5678",
-		memberSince: "Jan 2024",
+		memberSince: "janv. 2024",
 	};
 
 	const handleLogout = () => {
 		Alert.alert(
-			"Logout",
-			"Are you sure you want to logout?",
+			"Déconnexion",
+			"Voulez-vous vraiment vous déconnecter ?",
 			[
-				{ text: "Cancel", style: "cancel" },
-				{ text: "Logout", style: "destructive", onPress: () => console.log("Logged out") }
+				{ text: "Annuler", style: "cancel" },
+				{ text: "Se déconnecter", style: "destructive", onPress: () => console.log("Déconnecté") }
 			]
 		);
 	};
@@ -88,8 +88,8 @@ const Profile = () => {
 					{/* Top Bar */}
 					<View className="px-5 flex-row items-center justify-between mb-6">
 						<View>
-							<Text className="text-2xl font-poppins-bold text-white">Profile</Text>
-							<Text className="text-sm font-poppins text-white/70">Manage your account</Text>
+							<Text className="text-2xl font-poppins-bold text-white">Profil</Text>
+							<Text className="text-sm font-poppins text-white/70">Gérez votre compte</Text>
 						</View>
 						<View className="flex-row gap-3">
 							<TouchableOpacity className="bg-white/20 p-3 rounded-full">
@@ -121,69 +121,69 @@ const Profile = () => {
 
 				{/* Stats Cards - Overlapping */}
 				<View className="flex-row px-5 gap-3 -mt-10">
-					<StatCard value="12" label="Events" icon={icons.calendar} />
-					<StatCard value="3" label="Upcoming" icon={icons.star} />
-					<StatCard value="$450" label="Spent" icon={icons.wallet} />
+					<StatCard value="12" label="Événements" icon={icons.calendar} />
+					<StatCard value="3" label="À venir" icon={icons.star} />
+					<StatCard value="450 000 Ar" label="Dépensé" icon={icons.wallet} />
 				</View>
 
 				{/* Quick Actions */}
 				<View className="px-5 mt-6">
-					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Quick Actions</Text>
+					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Actions rapides</Text>
 					<View className="flex-row gap-3">
 						<TouchableOpacity 
 							className="flex-1 bg-primary rounded-2xl p-4 flex-row items-center justify-center"
 							style={{ elevation: 4 }}
 						>
 							<Image source={icons.calendar} className="size-5 mr-2" tintColor="#fff" />
-							<Text className="text-white font-poppins-semibold">My Bookings</Text>
+							<Text className="text-white font-poppins-semibold">Mes réservations</Text>
 						</TouchableOpacity>
 						<TouchableOpacity 
 							className="flex-1 bg-white rounded-2xl p-4 flex-row items-center justify-center border border-primary"
 							style={{ elevation: 2 }}
 						>
 							<Image source={icons.wallet} className="size-5 mr-2" tintColor="#5C27C0" />
-							<Text className="text-primary font-poppins-semibold">Payments</Text>
+							<Text className="text-primary font-poppins-semibold">Paiements</Text>
 						</TouchableOpacity>
 					</View>
 				</View>
 
 				{/* Account Settings */}
 				<View className="px-5 mt-6">
-					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Account Settings</Text>
+					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Paramètres du compte</Text>
 					<SettingsItem 
 						icon={icons.person} 
-						title="Personal Information" 
-						subtitle="Name, email, phone number"
+						title="Informations personnelles" 
+						subtitle="Nom, e-mail, numéro de téléphone"
 					/>
 					<SettingsItem 
 						icon={icons.shield} 
-						title="Security" 
-						subtitle="Password, 2FA settings"
+						title="Sécurité" 
+						subtitle="Mot de passe, double authentification"
 					/>
 					<SettingsItem 
 						icon={icons.bell} 
 						title="Notifications" 
-						subtitle="Push, email preferences"
+						subtitle="Préférences push et e-mail"
 					/>
 					<SettingsItem 
 						icon={icons.language} 
-						title="Language" 
-						subtitle="English (US)"
+						title="Langue" 
+						subtitle="Français"
 					/>
 				</View>
 
 				{/* Support */}
 				<View className="px-5 mt-6">
-					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Support</Text>
+					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Assistance</Text>
 					<SettingsItem 
 						icon={icons.info} 
-						title="Help Center" 
-						subtitle="FAQs, contact support"
+						title="Centre d’aide" 
+						subtitle="FAQ, contacter l’assistance"
 					/>
 					<SettingsItem 
 						icon={icons.people} 
-						title="Invite Friends" 
-						subtitle="Share and earn rewards"
+						title="Inviter des amis" 
+						subtitle="Partagez et gagnez des récompenses"
 					/>
 				</View>
 
@@ -194,14 +194,14 @@ const Profile = () => {
 						className="flex-row items-center justify-center py-4 bg-red-50 rounded-2xl border border-red-200"
 					>
 						<Image source={icons.logout} className="size-5 mr-3" tintColor="#EF4444" />
-						<Text className="text-red-500 font-poppins-semibold text-base">Logout</Text>
+						<Text className="text-red-500 font-poppins-semibold text-base">Déconnexion</Text>
 					</TouchableOpacity>
 				</View>
 
 				{/* App Version */}
 				<View className="items-center mt-8 mb-4">
 					<Text className="text-gray-400 font-poppins text-sm">TicketUp v1.0.0</Text>
-					<Text className="text-gray-400 font-poppins text-xs mt-1">Member since {user.memberSince}</Text>
+					<Text className="text-gray-400 font-poppins text-xs mt-1">Membre depuis {user.memberSince}</Text>
 				</View>
 			</ScrollView>
 		</SafeAreaView>
