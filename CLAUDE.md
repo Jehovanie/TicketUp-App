@@ -48,6 +48,7 @@ app/(root)/_layout.tsx       headerless Stack; initialRouteName = "(tabs)"
 app/(root)/(tabs)/           index (home) | explore | profile — custom TabIcon, absolute white tab bar
 app/(root)/(auth)/           signin | signup — both built on <AuthShell/>
 app/(root)/event/[id].tsx    event detail, fetches /api/events/:id directly
+app/(root)/payment.tsx       payment methods — design only, see below
 ```
 
 `typedRoutes` is enabled in `app.json`, so route strings are type-checked. Navigation uses absolute paths: `router.push('/(root)/event/${id}')`.
@@ -115,5 +116,7 @@ The codebase is mid-refactor from a real-estate template: several constants stil
 `GET /api/events` neither filters drafts (`status = false`) nor past events, and sorts by `createdAt` DESC. Any public listing must therefore rebuild its own programme with the selectors in **`_core/selectors/events.ts`** (`isPublished`, `isBookable`, `eventPhase`, `compareByStartAsc`, `minPriceTicket`, …) rather than rendering the raw array. Because that filtering happens client-side, a page of 20 can yield very few dates — the home screen keeps calling `loadMore()` until it holds enough.
 
 `ticket_type` can be empty (roughly one event in twelve): `minPriceTicket()` returns `null`, which is a third state distinct from a free ticket — render « Tarifs à venir », not « 0 Ar ».
+
+**Payment methods are a mock-up, not a feature.** `app/(root)/payment.tsx` lets the user configure MVola / Airtel Money / Orange Money / PayPal / Stripe, but the API has no payment entity or endpoint: the list lives in a `useState` and dies with the screen. The provider catalogue — brand colours, account kind, operator prefixes, validation and masking — is in `_shard/constants/payments.ts`, the shape in `_core/model/IPaymentMethod.ts`. Only the source of `methods` has to change when the back catches up. Partner logos live in `assets/logos` and are mapped by `_shard/constants/logos.ts`; they are trademarks, so they are shown as delivered — never tinted or redrawn. Their framing differs wildly (full-bleed brand squares, a transparent PNG, a 16:9 canvas), which is what `logoFit` / `logoPadding` on each provider are for.
 
 Branches: work lands on `develop` via feature branches (`features/<name>`); `main` is the release branch.

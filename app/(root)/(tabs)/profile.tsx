@@ -2,8 +2,10 @@ import { View, Text, ScrollView, Image, TouchableOpacity, ImageSourcePropType, A
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
+import { useRequireAuth } from "@/_core/hooks/useRequireAuth";
 
 interface SettingsItemProp {
 	icon: ImageSourcePropType;
@@ -57,6 +59,16 @@ const StatCard = ({ value, label, icon }: { value: string; label: string; icon: 
 );
 
 const Profile = () => {
+	const router = useRouter();
+	const requireAuth = useRequireAuth();
+
+	/**
+	 * Les moyens de paiement sont des données de compte : on passe par la garde
+	 * plutôt que d'ouvrir l'écran à un visiteur non connecté, qui n'aurait rien
+	 * à y configurer.
+	 */
+	const openPaymentMethods = () => requireAuth(() => router.push("/(root)/payment"));
+
 	const user = {
 		name: "Jehovanie RAMANDRIJOEL",
 		email: "jehovanieram@gmail.com",
@@ -138,6 +150,7 @@ const Profile = () => {
 							<Text className="text-white font-poppins-semibold">Mes réservations</Text>
 						</TouchableOpacity>
 						<TouchableOpacity 
+							onPress={openPaymentMethods}
 							className="flex-1 bg-white rounded-2xl p-4 flex-row items-center justify-center border border-primary"
 							style={{ elevation: 2 }}
 						>
@@ -159,6 +172,12 @@ const Profile = () => {
 						icon={icons.shield} 
 						title="Sécurité" 
 						subtitle="Mot de passe, double authentification"
+					/>
+					<SettingsItem 
+						icon={icons.wallet} 
+						title="Moyens de paiement" 
+						subtitle="MVola, Airtel Money, Orange Money, PayPal"
+						onPress={openPaymentMethods}
 					/>
 					<SettingsItem 
 						icon={icons.bell} 
