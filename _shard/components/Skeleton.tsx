@@ -59,7 +59,7 @@ export const Skeleton = ({ className = "", style }: SkeletonProps) => {
 			style={style}
 		>
 			{width > 0 && (
-				<Animated.View style={[StyleSheet.absoluteFillObject, { transform: [{ translateX }] }]}>
+				<Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateX }] }]}>
 					<LinearGradient colors={SWEEP} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
 				</Animated.View>
 			)}

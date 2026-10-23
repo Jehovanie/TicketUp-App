@@ -1,6 +1,7 @@
 import { Slot, SplashScreen, Stack } from "expo-router";
 
 import "./global.css";
+import "@/_config/nativewind";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import { EventProvider } from "@/_core/context/EventContext";

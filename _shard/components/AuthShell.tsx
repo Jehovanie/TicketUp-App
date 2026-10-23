@@ -15,9 +15,11 @@ import {
 	NativeSyntheticEvent,
 	Platform,
 	ScrollView,
+	ScrollViewInstance,
 	Text,
 	TouchableOpacity,
 	View,
+	ViewInstance,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -48,7 +50,7 @@ import { useKeyboardInset } from "@/_core/hooks/useKeyboardInset";
  */
 
 /** Repère de défilement demandé par un champ qui prend le focus. */
-type RevealField = (node: View | null) => void;
+type RevealField = (node: ViewInstance | null) => void;
 
 const RevealContext = createContext<RevealField>(() => {});
 
@@ -81,10 +83,10 @@ const AuthShell = ({ title, subtitle, children, footer }: AuthShellProps) => {
 	const safeArea = useSafeAreaInsets();
 	const keyboardInset = useKeyboardInset();
 
-	const scrollRef = useRef<ScrollView>(null);
-	const contentRef = useRef<View>(null);
+	const scrollRef = useRef<ScrollViewInstance>(null);
+	const contentRef = useRef<ViewInstance>(null);
 	/** Champ ayant le focus : on le repositionne à chaque variation du clavier. */
-	const focusedRef = useRef<View | null>(null);
+	const focusedRef = useRef<ViewInstance | null>(null);
 	const offsetRef = useRef(0);
 	const viewportRef = useRef(0);
 	const insetRef = useRef(0);
@@ -102,7 +104,7 @@ const AuthShell = ({ title, subtitle, children, footer }: AuthShellProps) => {
 		}).start();
 	}, [keyboardInset, collapse]);
 
-	const scrollFieldIntoView = useCallback((node: View | null) => {
+	const scrollFieldIntoView = useCallback((node: ViewInstance | null) => {
 		const content = contentRef.current;
 		if (!node || !content) return;
 

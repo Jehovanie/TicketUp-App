@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TextInputInstance, TouchableOpacity, View } from "react-native";
 import { Href, Link, useLocalSearchParams, useRouter } from "expo-router";
 
 import AuthShell, { AuthAlert, AuthSubmit } from "@/_shard/components/AuthShell";
@@ -86,11 +86,11 @@ const SignUp = () => {
 	const { redirect } = useLocalSearchParams<{ redirect?: string }>();
 	const { signUp, isSubmitting, error, clearError } = useSession();
 
-	const lastnameRef = useRef<TextInput>(null);
-	const emailRef = useRef<TextInput>(null);
-	const phoneRef = useRef<TextInput>(null);
-	const passwordRef = useRef<TextInput>(null);
-	const confirmationRef = useRef<TextInput>(null);
+	const lastnameRef = useRef<TextInputInstance>(null);
+	const emailRef = useRef<TextInputInstance>(null);
+	const phoneRef = useRef<TextInputInstance>(null);
+	const passwordRef = useRef<TextInputInstance>(null);
+	const confirmationRef = useRef<TextInputInstance>(null);
 
 	const [fields, setFields] = useState<Fields>(EMPTY);
 	/** Les messages n'apparaissent qu'après une première tentative d'envoi. */

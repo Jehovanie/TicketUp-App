@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TextInputInstance, TouchableOpacity, View } from "react-native";
 import { Href, Link, useLocalSearchParams, useRouter } from "expo-router";
 
 import AuthShell, { AuthAlert, AuthSubmit } from "@/_shard/components/AuthShell";
@@ -22,7 +22,7 @@ const SignIn = () => {
 	const { redirect } = useLocalSearchParams<{ redirect?: string }>();
 	const { signIn, isSubmitting, error, clearError } = useSession();
 
-	const passwordRef = useRef<TextInput>(null);
+	const passwordRef = useRef<TextInputInstance>(null);
 
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
