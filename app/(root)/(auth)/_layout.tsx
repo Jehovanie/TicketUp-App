@@ -1,4 +1,4 @@
-import { Slot } from "expo-router";
+import { Redirect, Slot } from "expo-router";
 
 const AuthLayout = () => {
 	return <Slot />;

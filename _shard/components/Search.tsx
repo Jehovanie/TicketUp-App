@@ -1,4 +1,4 @@
-import icons from "@/constants/icons";
+import icons from "@/_shard/constants/icons";
 import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { useState } from "react";
 import { View, Text, Image, TextInput, TouchableOpacity } from "react-native";
@@ -24,7 +24,7 @@ const Search = () => {
 				<TextInput
 					value={search}
 					onChangeText={handleSearch}
-					placeholder="Search for anything..."
+					placeholder="Rechercher..."
 					className="text-sm font-poppins text-black-300 ml-2 flex-1"
 				/>
 			</View>

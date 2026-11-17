@@ -1,8 +1,12 @@
 import { Slot, SplashScreen, Stack } from "expo-router";
 
 import "./global.css";
+import "@/_config/nativewind";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
+import { EventProvider } from "@/_core/context/EventContext";
+import { CategoryProvider } from "@/_core/context/CategoryContext";
+import { SessionProvider } from "@/_core/context/SessionContext";
 
 export default function AppLayout() {
 	const [fontsLoaded] = useFonts({
@@ -23,11 +27,15 @@ export default function AppLayout() {
 
 	if (!fontsLoaded) return null;
 
+	// `SessionProvider` englobe les autres : le jeton qu'il pose sur le client
+	// doit être en place avant tout appel des contextes de données.
 	return (
-		<Stack
-			screenOptions={{
-				headerShown: false,
-			}}
-		/>
+		<SessionProvider>
+			<CategoryProvider>
+				<EventProvider>
+					<Slot />
+				</EventProvider>
+			</CategoryProvider>
+		</SessionProvider>
 	);
 }
