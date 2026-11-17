@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 
 export const unstable_settings = {
-	initialRouteName: "(tabs)", // ou "(auth)" si tu préfères démarrer là
+	anchor: "(tabs)", // `initialRouteName` est déprécié depuis expo-router 55
 };
 
 export default function RootLayout() {

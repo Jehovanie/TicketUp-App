@@ -15,9 +15,17 @@ TicketUp est une application mobile permettant la gestion et l'achat de tickets 
 
 ## Technologies utilisées
 
-- React Native V0.76.9
-- Expo SDK 52.0.46
+- [Expo SDK 58](https://docs.expo.dev/) (`expo` ^58.0.17)
+- React Native 0.88.0 / React 19.3.0
+- [expo-router](https://docs.expo.dev/router/introduction/) 58 (routage par fichiers, routes typées)
+- [NativeWind](https://www.nativewind.dev/) 4 + Tailwind CSS 3 pour le style
+- TypeScript 6 (mode strict)
+- Jest 30 + `jest-expo` pour les tests
 - API REST ([voir le dépôt backend](https://github.com/jehovanie/ticketup-api))
+
+> Depuis Expo SDK 54, Android est en mode **edge-to-edge** : la fenêtre n'est
+> plus redimensionnée à l'ouverture du clavier. Les écrans avec saisie de texte
+> gèrent donc eux-mêmes le décalage (`useKeyboardInset`, `AuthShell`).
 
 ## Installation
 
@@ -41,6 +49,18 @@ TicketUp est une application mobile permettant la gestion et l'achat de tickets 
    ```bash
    npm run start
    ```
+
+### Scripts disponibles
+
+| Commande | Effet |
+| --- | --- |
+| `npm run start` | serveur de dev Expo (QR code pour Expo Go) |
+| `npm run android` / `npm run ios` / `npm run web` | lance directement sur la plateforme |
+| `npm run lint` | `expo lint` (ESLint 9, `eslint-config-expo` 58) |
+| `npm test` | Jest en mode watch ; `npm test -- --watchAll=false <fichier>` pour une exécution unique |
+
+Après une montée de version d'Expo, aligner les dépendances natives avec
+`npx expo install --check` et relancer Metro avec `npm run start -- --clear`.
 
 # Connexion à l'API back-end
 

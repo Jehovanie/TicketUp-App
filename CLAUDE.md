@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-TicketUp mobile app — browse events, buy and manage tickets. Expo SDK 54 / React Native 0.81 / React 19, expo-router, NativeWind (Tailwind) for styling, TypeScript strict. Consumes a separate REST backend ([ticketup-api](https://github.com/jehovanie/ticketup-api)), which is an API Platform / Symfony service (responses carry `@context` / `@id` / `@type` JSON-LD fields — see `_core/model/*`).
+TicketUp mobile app — browse events, buy and manage tickets. Expo SDK 58 / React Native 0.88 / React 19.3, expo-router, NativeWind (Tailwind) for styling, TypeScript strict. Consumes a separate REST backend ([ticketup-api](https://github.com/jehovanie/ticketup-api)), which is an API Platform / Symfony service (responses carry `@context` / `@id` / `@type` JSON-LD fields — see `_core/model/*`).
 
 ## Commands
 
@@ -77,7 +77,7 @@ Browsing stays public. The wall sits on the *action*, not on navigation: `useReq
 
 ### Forms and the on-screen keyboard
 
-Expo SDK 54 forces **edge-to-edge** on Android, so the window is no longer resized when the keyboard opens: `adjustResize` moves nothing, and `KeyboardAvoidingView` leaves the form buried under the keyboard. Every screen with text input must therefore lift its own content.
+Since SDK 54, Expo forces **edge-to-edge** on Android, so the window is no longer resized when the keyboard opens: `adjustResize` moves nothing, and `KeyboardAvoidingView` leaves the form buried under the keyboard. Every screen with text input must therefore lift its own content.
 
 The auth screens do it through three pieces — reuse them rather than reinventing per screen:
 
@@ -106,6 +106,8 @@ The tab bar is `position: "absolute"`, and React Navigation publishes whatever n
 Display strings go through `_shard/constants/format.ts`: the UI is French (`LOCALE = "fr-FR"`), prices are integers in ariary rendered `50 000 Ar`, and a null/zero price is a *Gratuit* badge — never « 0 Ar ».
 
 Code style: tabs for indentation, double quotes.
+
+Refs to RN components take the exported **instance** types — `useRef<ScrollViewInstance>`, `TextInputInstance`, `ViewInstance` — not the component itself: since RN 0.88's generated types, `ScrollView` / `TextInput` / `View` are plain functions and `useRef<ScrollView>` no longer type-checks.
 
 ## Conventions in flight
 

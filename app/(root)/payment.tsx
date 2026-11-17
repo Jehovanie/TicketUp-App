@@ -5,6 +5,7 @@ import {
 	LayoutChangeEvent,
 	Pressable,
 	ScrollView,
+	ScrollViewInstance,
 	Text,
 	TouchableOpacity,
 	View,
@@ -234,7 +235,7 @@ const PaymentMethods = () => {
 	const safeArea = useSafeAreaInsets();
 	const keyboardInset = useKeyboardInset();
 
-	const scrollRef = useRef<ScrollView>(null);
+	const scrollRef = useRef<ScrollViewInstance>(null);
 	/**
 	 * Position de chaque carte dans le contenu. Toutes les sections sont des
 	 * frères directs du conteneur de défilement — d'où les marges portées par

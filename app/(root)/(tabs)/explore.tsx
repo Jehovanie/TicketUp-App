@@ -82,7 +82,7 @@ const Explore = () => {
 						<View className="py-6">
 							<ActivityIndicator size="small" color="#1B2A5B" />
 						</View>
-					) : null
+					) : undefined
 				}
 				key={viewMode}
 				contentContainerClassName="pb-32"

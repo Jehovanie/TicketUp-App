@@ -3,8 +3,10 @@ import {
 	Pressable,
 	Text,
 	TextInput,
+	TextInputInstance,
 	TextInputProps,
 	View,
+	ViewInstance,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -36,13 +38,13 @@ type AuthFieldProps = Omit<TextInputProps, "className" | "style"> & {
 	containerClassName?: string;
 };
 
-const AuthField = forwardRef<TextInput, AuthFieldProps>(
+const AuthField = forwardRef<TextInputInstance, AuthFieldProps>(
 	(
 		{ label, error, hint, secure = false, containerClassName = "", onFocus, onBlur, ...inputProps },
 		ref
 	) => {
 		const revealField = useRevealField();
-		const holder = useRef<View>(null);
+		const holder = useRef<ViewInstance>(null);
 
 		const [focused, setFocused] = useState(false);
 		const [revealed, setRevealed] = useState(false);

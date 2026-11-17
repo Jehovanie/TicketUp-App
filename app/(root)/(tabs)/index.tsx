@@ -10,7 +10,7 @@ import {
 	View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
+import { BottomTabBarHeightContext } from "expo-router/js-tabs";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -332,7 +332,7 @@ const Home = () => {
 					/>
 				}
 				ListEmptyComponent={renderEmpty()}
-				ListFooterComponent={renderFooter()}
+				ListFooterComponent={renderFooter() ?? undefined}
 				ListHeaderComponent={
 					<View>
 						{/* ---------------------------------------------- en-tête */}

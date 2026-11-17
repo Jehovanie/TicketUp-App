@@ -19,6 +19,8 @@ const EventDetails = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [selectedTicket, setSelectedTicket] = useState<number | null>(null);
+	/** Hauteur de la barre de réservation, posée en absolu par-dessus la liste. */
+	const [bottomBarHeight, setBottomBarHeight] = useState(0);
 	const requireAuth = useRequireAuth();
 	const { isLogged } = useSession();
 
@@ -105,7 +107,13 @@ const EventDetails = () => {
 
 	return (
 		<SafeAreaView className="flex-1 bg-white">
-			<ScrollView showsVerticalScrollIndicator={false}>
+			{/* La garde basse suit la hauteur mesurée de la barre : elle varie selon
+			    qu'un récapitulatif de prix s'affiche ou non, une valeur en dur
+			    laissait « Bon à savoir » à moitié masqué. */}
+			<ScrollView
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{ paddingBottom: bottomBarHeight + 16 }}
+			>
 				{/* Header Image */}
 				<View className="relative h-80 w-full">
 					<Image source={event.imageUrl && event.imageUrl.length > 0 ? { uri: event.imageUrl[0] } : images.maitreGims} className="w-full h-full" resizeMode="cover" />
@@ -217,7 +225,7 @@ const EventDetails = () => {
 					</View>
 
 					{/* Tickets Section - Ultra Modern Design */}
-					<View className="mb-24">
+					<View>
 						{/* Header Section */}
 						<View className="mb-6">
 							<View className="flex-row items-center justify-between mb-3">
@@ -426,7 +434,10 @@ const EventDetails = () => {
 			</ScrollView>
 
 			{/* Bottom Button - Modern Design */}
-			<View className="absolute bottom-0 left-0 right-0 bg-white px-5 py-4 border-t border-gray-100">
+			<View
+				onLayout={(e) => setBottomBarHeight(e.nativeEvent.layout.height)}
+				className="absolute bottom-0 left-0 right-0 bg-white px-5 py-4 border-t border-gray-100"
+			>
 				{selectedTicket !== null && event.status ? (
 					<>
 						{/* Price Summary */}
