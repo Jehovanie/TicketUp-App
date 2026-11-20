@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import icons from "@/_shard/constants/icons";
 import images from "@/_shard/constants/images";
+import { useSession } from "@/_core/context/SessionContext";
 import { useRequireAuth } from "@/_core/hooks/useRequireAuth";
 
 interface SettingsItemProp {
@@ -61,6 +62,7 @@ const StatCard = ({ value, label, icon }: { value: string; label: string; icon: 
 const Profile = () => {
 	const router = useRouter();
 	const requireAuth = useRequireAuth();
+	const { signOut } = useSession();
 
 	/**
 	 * Les moyens de paiement sont des données de compte : on passe par la garde
@@ -84,7 +86,10 @@ const Profile = () => {
 			"Voulez-vous vraiment vous déconnecter ?",
 			[
 				{ text: "Annuler", style: "cancel" },
-				{ text: "Se déconnecter", style: "destructive", onPress: () => console.log("Déconnecté") }
+				{ text: "Se déconnecter", style: "destructive", onPress: async () => {
+					await signOut();
+					router.replace("/");
+				} }
 			]
 		);
 	};

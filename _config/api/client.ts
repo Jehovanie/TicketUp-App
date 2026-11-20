@@ -47,6 +47,18 @@ export function getAuthToken(): string | null {
 	return authToken;
 }
 
+/**
+ * Appelé sur un 401 d'une requête authentifiée : doit renvoyer un nouveau JWT,
+ * ou `null` si la session est perdue. Posé par `SessionProvider`, qui détient
+ * le refresh token — le client n'en sait rien.
+ */
+type UnauthorizedHandler = () => Promise<string | null>;
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+	unauthorizedHandler = handler;
+}
+
 function buildUrl(endPoint: string, query?: QueryParams): string {
 	const base = `${environment.apiUrl}${endPoint}`;
 	if (!query) return base;
@@ -71,8 +83,10 @@ function extractErrorMessage(status: number, payload: any): string {
 
 export async function client<T>(
 	endPoint: string,
-	{ body, query, skipAuth, ...customConfig }: RequestOptions = {}
+	options: RequestOptions & { isRetry?: boolean } = {}
 ): Promise<ClientResponse<T>> {
+	const { body, query, skipAuth, isRetry, ...customConfig } = options;
+	const sentToken = authToken;
 	const headers: Record<string, string> = {
 		// Indispensable : sans cet en-tête les endpoints API Platform natifs
 		// répondent en JSON-LD (`application/ld+json`).
@@ -113,6 +127,13 @@ export async function client<T>(
 			if (!response.ok) throw new ApiError(raw.slice(0, 200), response.status, raw, url);
 			throw new ApiError("Réponse non JSON reçue de l'API", response.status, raw, url);
 		}
+	}
+
+	// Access token expiré (15 min) : on le renouvelle une fois, puis on rejoue.
+	// Jamais pour une route publique (`skipAuth`, ex. login) ni pour un rejeu.
+	if (response.status === 401 && !skipAuth && !isRetry && sentToken && unauthorizedHandler) {
+		const fresh = await unauthorizedHandler();
+		if (fresh) return client<T>(endPoint, { ...options, isRetry: true });
 	}
 
 	if (!response.ok) {
