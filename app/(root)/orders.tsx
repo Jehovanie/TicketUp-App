@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -10,11 +10,26 @@ import { GRADIENTS, colors } from "@/_shard/constants/colors";
 import { LOCALE, formatPrice, isFree } from "@/_shard/constants/format";
 import OrderActions from "@/_shard/components/OrderActions";
 import OrderStatusBadge from "@/_shard/components/OrderStatusBadge";
-import { IOrder } from "@/_core/model/IOrder";
+import { IOrder, OrderStatus } from "@/_core/model/IOrder";
 import { ApiError } from "@/_config/api/client";
 import { getMyOrders } from "@/_config/api/orders";
 
-const PAGE_SIZE = 10;
+/** Plafond de l'API (`itemsPerPage` ≤ 20) et garde-fou sur le nombre de pages lues. */
+const PAGE_SIZE = 20;
+const MAX_PAGES = 10;
+
+/**
+ * Onglets par statut, dans l'ordre d'affichage. L'API ne filtre pas par statut
+ * (`GET /api/orders/me`) : on charge les commandes de l'utilisateur et on les
+ * répartit ici, ce qui donne aussi le compteur de chaque onglet.
+ */
+const TABS: { status: OrderStatus; label: string; empty: string }[] = [
+	{ status: "pending", label: "En attente", empty: "Aucune commande en attente de paiement." },
+	{ status: "paid", label: "Payées", empty: "Aucune commande payée pour le moment." },
+	{ status: "cancelled", label: "Annulées", empty: "Aucune commande annulée." },
+	{ status: "expired", label: "Expirées", empty: "Aucune commande expirée." },
+	{ status: "refunded", label: "Remboursées", empty: "Aucune commande remboursée." },
+];
 
 const OrderCard = ({ order, onChange }: { order: IOrder; onChange: (o: IOrder) => void }) => {
 	const router = useRouter();
@@ -68,26 +83,27 @@ const OrderCard = ({ order, onChange }: { order: IOrder; onChange: (o: IOrder) =
 	);
 };
 
-/** Commandes de l'utilisateur connecté, avec leur statut. */
+/** Commandes de l'utilisateur connecté, réparties par statut. */
 const Orders = () => {
 	const router = useRouter();
 	const insets = useSafeAreaInsets();
 
 	const [orders, setOrders] = useState<IOrder[]>([]);
-	const [total, setTotal] = useState(0);
-	const [page, setPage] = useState(1);
+	const [tab, setTab] = useState<OrderStatus>("pending");
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
-	const [loadingMore, setLoadingMore] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const load = useCallback(async (target: number, mode: "initial" | "refresh" | "more") => {
+	const load = useCallback(async () => {
 		try {
 			setError(null);
-			const data = await getMyOrders({ page: target, itemsPerPage: PAGE_SIZE });
-			setTotal(data.itemsTotal);
-			setPage(target);
-			setOrders((prev) => (mode === "more" ? [...prev, ...data.items] : data.items));
+			const all: IOrder[] = [];
+			for (let page = 1; page <= MAX_PAGES; page++) {
+				const data = await getMyOrders({ page, itemsPerPage: PAGE_SIZE });
+				all.push(...data.items);
+				if (all.length >= data.itemsTotal || data.items.length === 0) break;
+			}
+			setOrders(all);
 		} catch (err) {
 			if (err instanceof ApiError && err.status === 401) setError("Votre session a expiré. Reconnectez-vous.");
 			else if (err instanceof ApiError && err.status === 0) setError("Serveur injoignable. Vérifiez votre connexion.");
@@ -95,20 +111,26 @@ const Orders = () => {
 		} finally {
 			setLoading(false);
 			setRefreshing(false);
-			setLoadingMore(false);
 		}
 	}, []);
 
 	useEffect(() => {
-		load(1, "initial");
+		load();
 	}, [load]);
 
-	const hasMore = orders.length < total;
+	const counts = useMemo(() => {
+		const map: Record<string, number> = {};
+		for (const o of orders) map[o.status] = (map[o.status] ?? 0) + 1;
+		return map;
+	}, [orders]);
+
+	const visible = useMemo(() => orders.filter((o) => o.status === tab), [orders, tab]);
+	const current = TABS.find((t) => t.status === tab)!;
 
 	return (
 		<View className="flex-1 bg-surface">
-			<LinearGradient colors={GRADIENTS.night} style={{ paddingTop: insets.top + 12 }} className="px-5 pb-6">
-				<View className="flex-row items-center">
+			<LinearGradient colors={GRADIENTS.night} style={{ paddingTop: insets.top + 12 }} className="pb-4">
+				<View className="flex-row items-center px-5">
 					<TouchableOpacity
 						onPress={() => router.back()}
 						accessibilityLabel="Retour"
@@ -120,11 +142,42 @@ const Orders = () => {
 						<Text className="font-poppins-bold text-xl text-white">Mes commandes</Text>
 						{!loading && !error && (
 							<Text className="font-poppins text-xs text-white/70">
-								{total} commande{total > 1 ? "s" : ""}
+								{orders.length} commande{orders.length > 1 ? "s" : ""}
 							</Text>
 						)}
 					</View>
 				</View>
+
+				{/* Onglets par statut */}
+				<ScrollView
+					horizontal
+					showsHorizontalScrollIndicator={false}
+					className="mt-4"
+					contentContainerStyle={{ paddingHorizontal: 20 }}
+				>
+					{TABS.map((t) => {
+						const active = t.status === tab;
+						const count = counts[t.status] ?? 0;
+						return (
+							<TouchableOpacity
+								key={t.status}
+								onPress={() => setTab(t.status)}
+								accessibilityRole="tab"
+								accessibilityState={{ selected: active }}
+								className={`mr-2 flex-row items-center rounded-full px-4 py-2 ${active ? "bg-white" : "bg-white/15"}`}
+							>
+								<Text className={`font-poppins-semibold text-sm ${active ? "text-primary" : "text-white"}`}>{t.label}</Text>
+								{!loading && (
+									<View
+										className={`ml-2 min-w-[20px] items-center rounded-full px-1.5 py-0.5 ${active ? "bg-primary" : "bg-white/25"}`}
+									>
+										<Text className="font-poppins-bold text-[11px] text-white">{count}</Text>
+									</View>
+								)}
+							</TouchableOpacity>
+						);
+					})}
+				</ScrollView>
 			</LinearGradient>
 
 			{loading ? (
@@ -133,7 +186,7 @@ const Orders = () => {
 				</View>
 			) : (
 				<FlatList
-					data={orders}
+					data={error ? [] : visible}
 					keyExtractor={(o) => o.reference}
 					renderItem={({ item }) => (
 						<OrderCard order={item} onChange={(o) => setOrders((prev) => prev.map((x) => (x.reference === o.reference ? o : x)))} />
@@ -145,18 +198,11 @@ const Orders = () => {
 							refreshing={refreshing}
 							onRefresh={() => {
 								setRefreshing(true);
-								load(1, "refresh");
+								load();
 							}}
 							tintColor={colors.primary.DEFAULT}
 						/>
 					}
-					onEndReachedThreshold={0.4}
-					onEndReached={() => {
-						if (!hasMore || loadingMore || refreshing || error) return;
-						setLoadingMore(true);
-						load(page + 1, "more");
-					}}
-					ListFooterComponent={loadingMore ? <ActivityIndicator className="my-4" color={colors.primary.DEFAULT} /> : undefined}
 					ListEmptyComponent={
 						<View className="flex-1 items-center justify-center px-6">
 							<View className="h-16 w-16 items-center justify-center rounded-full bg-primary-50">
@@ -169,15 +215,15 @@ const Orders = () => {
 							<Text className="mt-4 text-center font-poppins-semibold text-base text-ink-900">
 								{error ? "Chargement impossible" : "Aucune commande"}
 							</Text>
-							<Text className="mt-1 text-center font-poppins text-sm text-ink-500">
-								{error ?? "Vos commandes de billets apparaîtront ici."}
-							</Text>
-							<TouchableOpacity
-								onPress={() => (error ? (setLoading(true), load(1, "initial")) : router.replace("/"))}
-								className="mt-5 rounded-full bg-primary px-6 py-3"
-							>
-								<Text className="font-poppins-semibold text-white">{error ? "Réessayer" : "Découvrir les événements"}</Text>
-							</TouchableOpacity>
+							<Text className="mt-1 text-center font-poppins text-sm text-ink-500">{error ?? current.empty}</Text>
+							{(error || orders.length === 0) && (
+								<TouchableOpacity
+									onPress={() => (error ? (setLoading(true), load()) : router.replace("/"))}
+									className="mt-5 rounded-full bg-primary px-6 py-3"
+								>
+									<Text className="font-poppins-semibold text-white">{error ? "Réessayer" : "Découvrir les événements"}</Text>
+								</TouchableOpacity>
+							)}
 						</View>
 					}
 				/>
