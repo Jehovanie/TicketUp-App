@@ -70,3 +70,33 @@ export async function getMe(): Promise<IUser> {
 
 	return response.data;
 }
+
+export interface IRefreshResponse {
+	token: string;
+	/** `single_use: true` côté API : l'ancien refresh token est consommé, celui-ci le remplace. */
+	refresh_token: string;
+}
+
+/**
+ * `POST /api/auth/refresh` — échange un refresh token contre un nouveau couple
+ * de jetons. Réponse hors enveloppe ; 401 si le jeton est inconnu, déjà
+ * consommé ou expiré (30 jours).
+ */
+export async function refresh(refreshToken: string): Promise<IRefreshResponse> {
+	const response = await client.post<IRefreshResponse>(
+		"/api/auth/refresh",
+		{ refresh_token: refreshToken },
+		{ skipAuth: true }
+	);
+
+	return response.data;
+}
+
+/**
+ * `POST /api/auth/logout` — invalide le refresh token de cet appareil.
+ * Public et idempotent (200 même pour un jeton inconnu). L'access token déjà
+ * émis reste valable jusqu'à son expiration : c'est au client de l'oublier.
+ */
+export async function logout(refreshToken: string): Promise<void> {
+	await client.post("/api/auth/logout", { refresh_token: refreshToken }, { skipAuth: true });
+}

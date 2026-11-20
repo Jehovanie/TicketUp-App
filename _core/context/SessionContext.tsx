@@ -1,12 +1,14 @@
-import React, { createContext, useCallback, useContext, useMemo, useState, ReactNode } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 
 import {
 	getMe,
 	login as loginRequest,
+	logout as logoutRequest,
+	refresh as refreshRequest,
 	register as registerRequest,
 	IRegisterInput,
 } from "@/_config/api/auth";
-import { ApiError, setAuthToken } from "@/_config/api/client";
+import { ApiError, setAuthToken, setUnauthorizedHandler } from "@/_config/api/client";
 import { IUser } from "@/_core/model/IUser";
 
 /**
@@ -22,12 +24,11 @@ import { IUser } from "@/_core/model/IUser";
  * installé (`expo-secure-store` / `async-storage`), donc la session est perdue
  * à chaque redémarrage de l'application.
  *
- * ⚠️ **L'access token expire en 15 minutes** (`exp = iat + 900` dans le JWT
- * délivré par Lexik). Le `refresh_token` renvoyé par la connexion comme par
- * l'inscription est gardé ici, mais `POST /api/auth/refresh` n'est pas encore
- * appelé : au-delà de ce quart d'heure, une requête authentifiée repartira en
- * 401. Sans conséquence aujourd'hui — `getMe()`, juste après la connexion, est
- * le seul appel authentifié de l'application.
+ * L'access token expire en 15 minutes. Sur un 401, le client appelle le
+ * `unauthorizedHandler` posé ici : `POST /api/auth/refresh` renouvelle le couple
+ * de jetons, puis la requête est rejouée. Le refresh token est à usage unique
+ * (`single_use`) : les 401 simultanés partagent donc UN seul appel de
+ * renouvellement. S'il est refusé (expiré, révoqué), la session est fermée.
  */
 
 type SessionContextType = {
@@ -41,7 +42,8 @@ type SessionContextType = {
 	signIn: (email: string, password: string) => Promise<boolean>;
 	/** Inscription : crée le compte et connecte dans la foulée. */
 	signUp: (input: IRegisterInput) => Promise<boolean>;
-	signOut: () => void;
+	/** Ferme la session : oublie les jetons et révoque le refresh token côté API. */
+	signOut: () => Promise<void>;
 	clearError: () => void;
 };
 
@@ -53,7 +55,7 @@ export const SessionContext = createContext<SessionContextType>({
 	error: null,
 	signIn: async () => false,
 	signUp: async () => false,
-	signOut: () => {},
+	signOut: async () => {},
 	clearError: () => {},
 });
 
@@ -109,8 +111,16 @@ function registerErrorMessage(err: unknown): string {
 
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
 	const [user, setUser] = useState<IUser | null>(null);
-	/** Gardé pour `POST /api/auth/refresh`, pas encore consommé. */
-	const [, setRefreshToken] = useState<string | null>(null);
+	/**
+	 * Dans une ref : le handler de renouvellement la lit au moment du 401, et un
+	 * state le ferait voir périmé (et re-rendrait tout pour rien).
+	 */
+	const refreshTokenRef = useRef<string | null>(null);
+	const setRefreshToken = (token: string | null) => {
+		refreshTokenRef.current = token;
+	};
+	/** Renouvellement en cours, partagé : le refresh token ne sert qu'une fois. */
+	const refreshing = useRef<Promise<string | null> | null>(null);
 	const [isLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -173,11 +183,55 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 		}
 	}, []);
 
-	const signOut = useCallback(() => {
+	const signOut = useCallback(async () => {
+		const refreshToken = refreshTokenRef.current;
+
+		// Local d'abord : l'utilisateur est déconnecté même si le réseau est coupé.
 		setAuthToken(null);
-		setRefreshToken(null);
+		refreshTokenRef.current = null;
 		setUser(null);
 		setError(null);
+
+		if (!refreshToken) return;
+		try {
+			await logoutRequest(refreshToken);
+		} catch (err) {
+			// Au pire le refresh token reste valable jusqu'à son expiration (30 j).
+			console.warn("[SessionContext] POST /api/auth/logout", err);
+		}
+	}, []);
+
+	useEffect(() => {
+		setUnauthorizedHandler(() => {
+			if (refreshing.current) return refreshing.current;
+
+			const current = refreshTokenRef.current;
+			if (!current) return Promise.resolve(null);
+
+			refreshing.current = (async () => {
+				try {
+					const { token, refresh_token } = await refreshRequest(current);
+					setAuthToken(token);
+					refreshTokenRef.current = refresh_token;
+					return token;
+				} catch (err) {
+					// Refus de l'API (jeton consommé, expiré, révoqué) : session perdue.
+					// Une panne réseau (status 0) ne doit pas déconnecter.
+					if (!(err instanceof ApiError) || err.status !== 0) {
+						setAuthToken(null);
+						refreshTokenRef.current = null;
+						setUser(null);
+					}
+					return null;
+				} finally {
+					refreshing.current = null;
+				}
+			})();
+
+			return refreshing.current;
+		});
+
+		return () => setUnauthorizedHandler(null);
 	}, []);
 
 	const clearError = useCallback(() => setError(null), []);
