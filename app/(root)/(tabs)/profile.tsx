@@ -67,6 +67,8 @@ const Profile = () => {
 	 * plutôt que d'ouvrir l'écran à un visiteur non connecté, qui n'aurait rien
 	 * à y configurer.
 	 */
+	const openOrders = () => requireAuth(() => router.push("/(root)/orders"));
+
 	const openPaymentMethods = () => requireAuth(() => router.push("/(root)/payment"));
 
 	const user = {
@@ -143,11 +145,12 @@ const Profile = () => {
 					<Text className="text-lg font-poppins-bold text-gray-800 mb-4">Actions rapides</Text>
 					<View className="flex-row gap-3">
 						<TouchableOpacity 
+							onPress={openOrders}
 							className="flex-1 bg-primary rounded-2xl p-4 flex-row items-center justify-center"
 							style={{ elevation: 4 }}
 						>
 							<Image source={icons.calendar} className="size-5 mr-2" tintColor="#fff" />
-							<Text className="text-white font-poppins-semibold">Mes réservations</Text>
+							<Text className="text-white font-poppins-semibold">Mes commandes</Text>
 						</TouchableOpacity>
 						<TouchableOpacity 
 							onPress={openPaymentMethods}

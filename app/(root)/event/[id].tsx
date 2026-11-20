@@ -74,8 +74,10 @@ const EventDetails = () => {
 		if (selectedTicket === null) return;
 
 		requireAuth(() => {
-			// TODO : écran de réservation (aucun endpoint de commande côté API).
-			console.log("Booking ticket:", selectedTicket);
+			router.push({
+				pathname: "/(root)/checkout",
+				params: { eventId: String(id), ticketId: String(selectedTicket) },
+			});
 		});
 	};
 
